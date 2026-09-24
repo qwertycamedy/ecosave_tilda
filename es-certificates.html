@@ -1,0 +1,634 @@
+<!-- ================================================================
+     EcoSave — СЕРТИФИКАТЫ И НАГРАДЫ
+     Блок T123 на страницах «Отзывы» и «О компании».
+     Выше — скрытый блок «Каталог товаров» с разделом «Сертификаты».
+     ================================================================ -->
+
+<section class="es-cert" id="esCert">
+  <h2 class="es-cert__title" id="esCertTitle">Сертификаты и награды</h2>
+
+  <div class="es-cert__box">
+    <button
+      class="es-cert__nav es-cert__nav--prev"
+      id="esCertPrev"
+      aria-label="Предыдущие сертификаты"
+    >
+      <svg
+        width="16"
+        height="11"
+        viewBox="0 0 18 12"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M6.5 1L1.5 6L6.5 11M2 6H17"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+    <div class="es-cert__track" id="esCertTrack"></div>
+    <button
+      class="es-cert__nav es-cert__nav--next"
+      id="esCertNext"
+      aria-label="Следующие сертификаты"
+    >
+      <svg
+        width="16"
+        height="11"
+        viewBox="0 0 18 12"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M11.5 1L16.5 6L11.5 11M16 6H1"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+  </div>
+</section>
+
+<!-- просмотр в полном размере -->
+<div
+  class="es-lb"
+  id="esLb"
+  hidden
+  role="dialog"
+  aria-modal="true"
+  aria-label="Просмотр сертификата"
+>
+  <button class="es-lb__close" id="esLbClose" aria-label="Закрыть">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M4 4l12 12M16 4L4 16"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+    </svg>
+  </button>
+  <button
+    class="es-lb__nav es-lb__nav--prev"
+    id="esLbPrev"
+    aria-label="Предыдущий"
+  >
+    <svg
+      width="20"
+      height="14"
+      viewBox="0 0 18 12"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M6.5 1L1.5 6L6.5 11M2 6H17"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+  <figure class="es-lb__stage">
+    <img id="esLbImg" src="" alt="" />
+    <figcaption class="es-lb__caption" id="esLbCap"></figcaption>
+  </figure>
+  <button
+    class="es-lb__nav es-lb__nav--next"
+    id="esLbNext"
+    aria-label="Следующий"
+  >
+    <svg
+      width="20"
+      height="14"
+      viewBox="0 0 18 12"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M11.5 1L16.5 6L11.5 11M16 6H1"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+</div>
+
+<style>
+  .es-cert {
+    --es-green: #4d9033;
+    --es-green-dark: #447f2d;
+    --es-green-soft: #cfe3cf;
+    --es-ink: #1a1a1a;
+    --es-muted: #6e6e6e;
+    --es-box: #f7f7f7;
+    --es-per-view: 5;
+    --es-gap: 24px;
+    color: var(--es-ink);
+    font-family: Inter, Sans-Serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 44px 20px;
+    box-sizing: border-box;
+  }
+  .es-cert *,
+  .es-cert *::before,
+  .es-cert *::after {
+    box-sizing: border-box;
+  }
+
+  .es-cert__title {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 24px;
+  }
+
+  .es-cert__box {
+    position: relative;
+    background: var(--es-box);
+    border-radius: 28px;
+    padding: 26px 84px;
+  }
+
+  .es-cert__track {
+    display: flex;
+    align-items: center;
+    gap: var(--es-gap);
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .es-cert__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .es-cert__item {
+    flex: 0 0
+      calc(
+        (100% - (var(--es-per-view) - 1) * var(--es-gap)) / var(--es-per-view)
+      );
+    height: 130px;
+    scroll-snap-align: start;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: zoom-in;
+    transition: transform 0.15s ease;
+  }
+  .es-cert__item img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .es-cert__item:hover {
+    transform: scale(1.03);
+  }
+
+  .es-cert__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--es-green);
+    color: #fff;
+    transition: background 0.15s ease;
+  }
+  .es-cert__nav:disabled {
+    background: var(--es-green-soft);
+    cursor: default;
+  }
+  .es-cert__nav--prev {
+    left: 22px;
+  }
+  .es-cert__nav--next {
+    right: 22px;
+  }
+  .es-cert__nav[hidden] {
+    display: none;
+  }
+  .es-cert__empty {
+    color: var(--es-muted);
+    font-size: 15px;
+    padding: 10px 0;
+  }
+
+  /* ---------- просмотр ---------- */
+  .es-lb {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(16, 20, 16, 0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 40px 20px;
+    font-family: Inter, Sans-Serif;
+  }
+  .es-lb[hidden] {
+    display: none;
+  }
+  .es-lb__stage {
+    margin: 0;
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .es-lb__stage img {
+    max-width: min(1100px, 86vw);
+    max-height: 80vh;
+    object-fit: contain;
+    display: block;
+    border-radius: 8px;
+    background: #fff;
+  }
+  .es-lb__caption {
+    color: #fff;
+    font-size: 15px;
+    text-align: center;
+    max-width: 70ch;
+  }
+  .es-lb__close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+  }
+  .es-lb__close:hover {
+    background: rgba(255, 255, 255, 0.26);
+  }
+  .es-lb__nav {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 0;
+    flex: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+  }
+  .es-lb__nav:hover {
+    background: rgba(255, 255, 255, 0.26);
+  }
+  .es-lb__nav:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .es-lb__nav[hidden] {
+    display: none;
+  }
+
+  /* ---------- адаптив ---------- */
+  @media (max-width: 1000px) {
+    .es-cert {
+      --es-per-view: 3;
+      --es-gap: 18px;
+    }
+    .es-cert__title {
+      font-size: 26px;
+    }
+    .es-cert__box {
+      padding: 22px 74px;
+      border-radius: 24px;
+    }
+    .es-cert__item {
+      height: 110px;
+    }
+  }
+  @media (max-width: 600px) {
+    .es-cert {
+      --es-per-view: 2;
+      --es-gap: 14px;
+      padding: 44px 16px;
+    }
+    .es-cert__title {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    .es-cert__box {
+      padding: 18px 54px;
+      border-radius: 22px;
+    }
+    .es-cert__item {
+      height: 96px;
+    }
+    .es-cert__nav {
+      width: 38px;
+      height: 38px;
+    }
+    .es-cert__nav--prev {
+      left: 10px;
+    }
+    .es-cert__nav--next {
+      right: 10px;
+    }
+    .es-lb {
+      padding: 20px 12px;
+      gap: 6px;
+    }
+    .es-lb__nav {
+      width: 40px;
+      height: 40px;
+    }
+    .es-lb__stage img {
+      max-width: 88vw;
+      max-height: 70vh;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .es-cert__track {
+      scroll-behavior: auto;
+    }
+    .es-cert * {
+      transition: none !important;
+    }
+  }
+
+  .es-source-loading {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  .es-source-hidden {
+    display: none !important;
+  }
+</style>
+
+<script>
+  (function () {
+    /* ============================================================
+     ES_CONFIG
+     title   — заголовок секции
+     partUid — идентификатор раздела «Сертификаты» в каталоге Tilda
+     recid   — запасной вариант: номер блока на ЭТОЙ странице
+     ============================================================ */
+    var ES_CONFIG = {
+      title: "Сертификаты и награды",
+      partUid: "",
+      recid: "",
+    };
+
+    var titleEl = document.getElementById("esCertTitle");
+    var track = document.getElementById("esCertTrack");
+    var prev = document.getElementById("esCertPrev");
+    var next = document.getElementById("esCertNext");
+
+    var lb = document.getElementById("esLb");
+    var lbImg = document.getElementById("esLbImg");
+    var lbCap = document.getElementById("esLbCap");
+    var lbPrev = document.getElementById("esLbPrev");
+    var lbNext = document.getElementById("esLbNext");
+    var lbClose = document.getElementById("esLbClose");
+
+    titleEl.textContent = ES_CONFIG.title;
+
+    var items = [];
+    var current = 0;
+    var lastFocus = null;
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[c];
+      });
+    }
+
+    /* ---------- скрываем магазинные блоки ---------- */
+    function sourceBlocks() {
+      return [].filter.call(
+        document.querySelectorAll('[id^="rec"]'),
+        function (el) {
+          return el.querySelector(
+            '.js-product, .t-store, .js-store, .t-store__grid-cont, [class*="t-store__"]',
+          );
+        },
+      );
+    }
+    var sourcesDone = false;
+    (function keepHidden(n) {
+      sourceBlocks().forEach(function (b) {
+        b.classList.add(sourcesDone ? "es-source-hidden" : "es-source-loading");
+      });
+      if (n < 100)
+        setTimeout(function () {
+          keepHidden(n + 1);
+        }, 250);
+    })(0);
+
+    /* ---------- сбор ---------- */
+    function collect() {
+      var cards;
+      if (ES_CONFIG.partUid) {
+        cards = document.querySelectorAll(
+          '.js-product[data-product-part-uid="' + ES_CONFIG.partUid + '"]',
+        );
+      } else if (ES_CONFIG.recid) {
+        var b = document.getElementById("rec" + ES_CONFIG.recid);
+        cards = b ? b.querySelectorAll(".js-product[data-product-uid]") : [];
+      } else {
+        cards = document.querySelectorAll(".js-product[data-product-uid]");
+      }
+      if (!cards.length) return null;
+
+      return [].map
+        .call(cards, function (c) {
+          var nameEl = c.querySelector(
+            ".js-store-prod-name, .t-store__card__title",
+          );
+          var descrEl = c.querySelector(
+            ".js-store-prod-descr, .t-store__card__descr",
+          );
+          return {
+            name: nameEl ? nameEl.textContent.trim() : "",
+            caption: descrEl
+              ? descrEl.textContent.replace(/\s+/g, " ").trim()
+              : "",
+            img: c.getAttribute("data-product-img") || "",
+          };
+        })
+        .filter(function (p) {
+          return p.img;
+        });
+    }
+
+    /* ---------- рендер ---------- */
+    function render(list) {
+      items = list;
+      if (!list.length) {
+        track.innerHTML =
+          '<div class="es-cert__empty">Сертификаты не загрузились.</div>';
+        prev.hidden = next.hidden = true;
+        return;
+      }
+      track.innerHTML = list
+        .map(function (p, i) {
+          return (
+            '<button class="es-cert__item" type="button" data-i="' +
+            i +
+            '" ' +
+            'aria-label="Открыть: ' +
+            esc(p.name || "сертификат") +
+            '">' +
+            '<img src="' +
+            esc(p.img) +
+            '" alt="' +
+            esc(p.name) +
+            '" loading="lazy">' +
+            "</button>"
+          );
+        })
+        .join("");
+
+      track.addEventListener("click", function (e) {
+        var btn = e.target.closest(".es-cert__item");
+        if (btn) open(+btn.getAttribute("data-i"));
+      });
+
+      initNav();
+    }
+
+    /* ---------- листание ---------- */
+    function initNav() {
+      function step() {
+        var first = track.querySelector(".es-cert__item");
+        if (!first) return track.clientWidth;
+        var gap =
+          parseFloat(
+            getComputedStyle(track).columnGap || getComputedStyle(track).gap,
+          ) || 0;
+        var per = Math.max(
+          1,
+          Math.round(track.clientWidth / (first.offsetWidth + gap)),
+        );
+        return (first.offsetWidth + gap) * per;
+      }
+      function sync() {
+        var max = track.scrollWidth - track.clientWidth - 1;
+        var fits = max <= 0;
+        prev.hidden = next.hidden = fits;
+        prev.disabled = fits || track.scrollLeft <= 0;
+        next.disabled = fits || track.scrollLeft >= max;
+      }
+      prev.onclick = function () {
+        track.scrollBy({ left: -step(), behavior: "smooth" });
+      };
+      next.onclick = function () {
+        track.scrollBy({ left: step(), behavior: "smooth" });
+      };
+      track.addEventListener("scroll", sync, { passive: true });
+      window.addEventListener("resize", sync);
+      sync();
+      setTimeout(sync, 400);
+    }
+
+    /* ---------- просмотр в полном размере ---------- */
+    function show(i) {
+      current = (i + items.length) % items.length;
+      var it = items[current];
+      lbImg.src = it.img;
+      lbImg.alt = it.name || "";
+      lbCap.textContent = it.caption || it.name || "";
+      var one = items.length < 2;
+      lbPrev.hidden = lbNext.hidden = one;
+    }
+
+    function open(i) {
+      lastFocus = document.activeElement;
+      show(i);
+      lb.hidden = false;
+      document.body.style.overflow = "hidden";
+      lbClose.focus();
+    }
+
+    function close() {
+      lb.hidden = true;
+      lbImg.src = "";
+      document.body.style.overflow = "";
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    lbClose.addEventListener("click", close);
+    lbPrev.addEventListener("click", function () {
+      show(current - 1);
+    });
+    lbNext.addEventListener("click", function () {
+      show(current + 1);
+    });
+    lb.addEventListener("mousedown", function (e) {
+      if (e.target === lb) close(); // клик по фону
+    });
+    document.addEventListener("keydown", function (e) {
+      if (lb.hidden) return;
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft") show(current - 1);
+      else if (e.key === "ArrowRight") show(current + 1);
+    });
+
+    /* ---------- ожидание загрузки ---------- */
+    var tries = 0;
+    (function wait() {
+      var list = collect();
+      if (list) {
+        sourcesDone = true;
+        render(list);
+        return;
+      }
+      if (++tries > 80) {
+        sourcesDone = true;
+        render([]);
+        console.warn(
+          "EcoSave: сертификаты не найдены. Проверьте partUid/recid в ES_CONFIG.",
+        );
+        return;
+      }
+      setTimeout(wait, 250);
+    })();
+  })();
+</script>

@@ -1,0 +1,224 @@
+<!-- ================================================================
+     EcoSave — НАВИГАЦИЯ: ССЫЛКИ, АКТИВНЫЙ ПУНКТ, ХОВЕРЫ
+     Блок T123. Нужен на двух страницах: шапке и подвале.
+     Один и тот же код, менять ничего не надо — он ищет пункты
+     и там, и там, включая мобильное меню.
+
+     Что делает:
+     1. Навешивает ссылки на текст-элементы Zero-блоков по их надписи,
+        так что задавать «Ссылка» каждому элементу вручную не нужно.
+     2. Подсвечивает пункт текущей страницы активным цветом.
+     3. Добавляет ховер ссылкам и кнопкам.
+     ================================================================ -->
+
+<script>
+  (function () {
+    var ES_CONFIG = {
+      // где искать: шапка (вместе с мобильным меню) и подвал
+      scopes: ["#t-header", "#t-footer"],
+
+      activeColor: "#4D9033",
+      hoverColor: "#4D9033",
+
+      // надпись элемента → адрес страницы.
+      // Регистр и лишние пробелы не важны.
+      // Указывайте адрес русской версии — языковой префикс
+      // допишет es-lang. Переводы нужны, чтобы пункты опознавались
+      // и в английской, и в казахской версии.
+      links: {
+        Каталог: "/catalog",
+        Catalog: "/catalog",
+        Субсидирование: "/subsidies",
+        Subsidies: "/subsidies",
+        Субсидиялау: "/subsidies",
+        Блог: "/blog",
+        Blog: "/blog",
+        Отзывы: "/reviews",
+        Reviews: "/reviews",
+        Пікірлер: "/reviews",
+        "О компании": "/about",
+        About: "/about",
+        "Компания туралы": "/about",
+        Контакты: "/contacts",
+        Contacts: "/contacts",
+        Байланыс: "/contacts",
+        "Политика конфиденциальности": "/privacy",
+        "Privacy policy": "/privacy",
+        "Құпиялылық саясаты": "/privacy",
+      },
+
+      // надписи кнопок: им ховер делается затемнением, а не цветом текста
+      buttons: [
+        "Связаться с нами",
+        "Contact us",
+        "Бізбен байланысу",
+        "Отправить",
+        "Send",
+        "Жіберу",
+        "Оставить заявку",
+        "Submit a request",
+        "Өтінім қалдыру",
+        "Подробнее",
+        "Learn more",
+        "Толығырақ",
+        "Смотреть все",
+        "View all",
+        "Барлығын көру",
+        "Смотреть каталог",
+        "View catalog",
+        "Каталогты қарау",
+      ],
+
+      // вложенные страницы подсвечивают родительский пункт:
+      // статья /article держит активным «Блог», товар /prep — «Каталог»
+      nested: {
+        "/blog": ["/article"],
+        "/catalog": ["/prep"],
+      },
+    };
+
+    /* ---------- стили ---------- */
+    var css = document.createElement("style");
+    css.textContent =
+      // в Zero-блоке цвет лежит на .tn-atom, а ссылка может быть навешана
+      // на весь пункт — тогда красить нужно вложенные текстовые атомы
+      ".es-nav-link{cursor:pointer;}" +
+      ".es-nav-link,.es-nav-link .tn-atom{transition:color .15s ease;}" +
+      ".es-nav-link:hover,.es-nav-link:hover .tn-atom{color:" +
+      ES_CONFIG.hoverColor +
+      " !important;}" +
+      ".es-nav-active,.es-nav-active .tn-atom{color:" +
+      ES_CONFIG.activeColor +
+      " !important;}" +
+      // кнопки: затемнение, чтобы не зависеть от их фона
+      ".es-nav-btn{transition:filter .15s ease,opacity .15s ease;}" +
+      ".es-nav-btn:hover{filter:brightness(.92);}" +
+      "@media (prefers-reduced-motion:reduce){" +
+      ".es-nav-link,.es-nav-link .tn-atom,.es-nav-btn{transition:none;}" +
+      "}";
+    document.head.appendChild(css);
+
+    /* ---------- адреса ---------- */
+    function norm(p) {
+      try {
+        p = new URL(p, location.origin).pathname;
+      } catch (e) {
+        return "";
+      }
+      p = p.toLowerCase().replace(/\/+$/, "");
+      return p || "/";
+    }
+
+    function key(s) {
+      return String(s || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
+
+    // таблица «надпись → адрес» с нормализованными ключами
+    var MAP = {};
+    Object.keys(ES_CONFIG.links).forEach(function (label) {
+      MAP[key(label)] = ES_CONFIG.links[label];
+    });
+
+    var BTN = {};
+    ES_CONFIG.buttons.forEach(function (label) {
+      BTN[key(label)] = true;
+    });
+
+    var here = norm(location.pathname);
+
+    // какой пункт считать активным на вложенной странице
+    var active = here;
+    Object.keys(ES_CONFIG.nested).forEach(function (root) {
+      (ES_CONFIG.nested[root] || []).forEach(function (child) {
+        var c = norm(child);
+        if (here === c || here.indexOf(c + "/") === 0) active = norm(root);
+      });
+    });
+
+    /* ---------- превращаем текст-элемент в ссылку ---------- */
+    // Tilda рендерит элемент со ссылкой как <a class="tn-atom" href>,
+    // поэтому подменяем тег, сохраняя классы и атрибуты — раскладка не поедет
+    function toLink(atom, href) {
+      if (atom.tagName === "A") {
+        atom.setAttribute("href", href);
+        return atom;
+      }
+
+      var a = document.createElement("a");
+      for (var i = 0; i < atom.attributes.length; i++) {
+        a.setAttribute(atom.attributes[i].name, atom.attributes[i].value);
+      }
+      a.setAttribute("href", href);
+      a.innerHTML = atom.innerHTML;
+      atom.parentNode.replaceChild(a, atom);
+      return a;
+    }
+
+    /* ---------- основная разметка ---------- */
+    function process() {
+      ES_CONFIG.scopes.forEach(function (sel) {
+        var root = document.querySelector(sel);
+        if (!root) return;
+
+        // 1. элементы Zero-блока без ссылки, но с подходящей надписью
+        root.querySelectorAll(".tn-atom").forEach(function (atom) {
+          if (atom.closest("a")) return; // уже внутри ссылки
+          if (atom.classList.contains("es-nav-btn")) return; // уже кнопка
+          if (atom.querySelector("img,svg,picture")) return;
+
+          var k = key(atom.textContent);
+          if (BTN[k]) {
+            atom.classList.add("es-nav-btn");
+            return;
+          }
+          if (!MAP[k] || !String(MAP[k]).trim()) return;
+
+          toLink(atom, MAP[k]);
+        });
+
+        // 2. все ссылки в области: ховер, активное состояние
+        root.querySelectorAll("a[href]").forEach(function (a) {
+          // Элемент уже разобран на первом проходе. Повторно не трогаем:
+          // к этому моменту es-lang мог перевести надпись, и кнопка
+          // перестала бы опознаваться как кнопка.
+          if (a.classList.contains("es-nav-btn")) return;
+
+          var href = (a.getAttribute("href") || "").trim();
+
+          // пустой href резолвится в адрес текущей страницы
+          if (!href) return;
+          if (/^(#|tel:|mailto:|javascript:)/i.test(href)) return;
+          if (/^https?:\/\//i.test(href) && href.indexOf(location.origin) !== 0)
+            return;
+
+          var k = key(a.textContent);
+
+          if (BTN[k]) {
+            // кнопка, не текстовая ссылка
+            a.classList.add("es-nav-btn");
+            return;
+          }
+          // ссылка без текста — логотип или иконка соцсети, её не красим.
+          // Ссылка с текстом красится, даже если внутри есть стрелка-иконка:
+          // в мобильном меню ссылка навешана на весь пункт целиком
+          if (!k) return;
+
+          a.classList.add("es-nav-link");
+
+          var target = norm(href);
+          if (target === active) a.classList.add("es-nav-active");
+          else a.classList.remove("es-nav-active");
+        });
+      });
+    }
+
+    process();
+    // шапка, подвал и мобильное меню дорисовываются после загрузки
+    window.addEventListener("load", process);
+    setTimeout(process, 600);
+    setTimeout(process, 1500);
+  })();
+</script>

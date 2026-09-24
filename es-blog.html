@@ -1,0 +1,269 @@
+<!-- ================================================================
+     EcoSave — БЛОГ
+     Блок T123. Выше на странице — скрытый блок «Каталог товаров»,
+     настроенный на раздел «Блог».
+
+     Главная страница:   limit: 3   (на мобильном покажется 2)
+     Страница блога:     limit: 0   (все статьи)
+     ================================================================ -->
+
+<section class="es-blog" id="esBlog">
+  <div class="es-blog__head">
+    <h2 class="es-blog__title" id="esBlogTitle">Блог</h2>
+    <a class="es-blog__all" id="esBlogAll" href="/blog">Смотреть все
+      <svg width="20" height="13" viewBox="0 0 20 13" fill="none" aria-hidden="true"><path d="M13 1L18.5 6.5L13 12M18 6.5H1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+  <div class="es-blog__grid" id="esBlogGrid"></div>
+</section>
+
+<style>
+.es-blog{
+  --es-green:#4D9033;--es-green-dark:#447F2D;--es-ink:#1A1A1A;--es-muted:#6E6E6E;
+  --es-card:#F7F7F7;--es-radius:14px;
+  color:var(--es-ink);font-family:Inter,Sans-Serif;
+  max-width:1200px;margin:0 auto;padding:0 20px;box-sizing:border-box;
+}
+.es-blog *,.es-blog *::before,.es-blog *::after{box-sizing:border-box;}
+
+.es-blog__head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:22px;}
+.es-blog__title{font-size:32px;font-weight:600;letter-spacing:-.02em;margin:0;}
+.es-blog__all{display:inline-flex;align-items:center;gap:10px;color:var(--es-green);text-decoration:none;font-size:16px;}
+.es-blog__all:hover{color:var(--es-green-dark);}
+.es-blog__all[hidden]{display:none;}
+
+.es-blog__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+
+.es-post{
+  display:flex;flex-direction:column;background:var(--es-card);border-radius:var(--es-radius);
+  overflow:hidden;text-decoration:none;color:inherit;transition:background .15s ease;
+}
+.es-post:hover{background:#EFF2EE;}
+.es-post__img{aspect-ratio:16/9;background:#E7EAE6;overflow:hidden;}
+.es-post__img img{width:100%;height:100%;object-fit:cover;display:block;}
+.es-post__body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1;}
+.es-post__date{font-size:14px;color:var(--es-muted);margin-bottom:10px;}
+.es-post__foot{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-top:auto;}
+.es-post__name{
+  font-size:15px;font-weight:700;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.es-post__foot svg{flex:none;margin-bottom:2px;}
+.es-blog__empty{color:var(--es-muted);font-size:15px;padding:20px 0;}
+
+@media (max-width:900px){
+  .es-blog__title{font-size:26px;}
+  .es-blog__grid{grid-template-columns:repeat(2,1fr);gap:16px;}
+  /* на главной третья карточка скрывается, на странице блога — нет */
+  .es-blog__grid[data-limited="true"] > *:nth-child(n+3){display:none;}
+}
+@media (max-width:600px){
+  .es-blog{padding:0 16px;}
+  .es-blog__title{font-size:20px;}
+  .es-blog__all{font-size:14px;gap:8px;}
+  .es-blog__grid{gap:12px;}
+  .es-post__body{padding:12px 14px 14px;}
+  .es-post__date{font-size:12px;margin-bottom:8px;}
+  .es-post__name{font-size:13px;}
+}
+@media (prefers-reduced-motion:reduce){.es-blog *{transition:none !important;}}
+
+/* нижняя часть белой карточки на странице статьи (surface: true) */
+.es-blog--surface{
+  background:#fff;
+  border-radius:0 0 20px 20px;
+  padding:0 56px 40px;
+  max-width:1200px;
+}
+.es-blog--surface .es-blog__head{
+  border-top:1px solid #E4E7E3;
+  padding-top:32px;
+}
+@media (max-width:760px){
+  .es-blog--surface{border-radius:0;padding:0 16px 28px;}
+  .es-blog--surface .es-blog__head{padding-top:24px;}
+}
+
+.es-source-loading{opacity:0 !important;pointer-events:none !important;}
+.es-source-hidden{display:none !important;}
+</style>
+
+<script>
+(function () {
+  /* ============================================================
+     ES_CONFIG
+     title          — заголовок секции
+     limit          — сколько статей показать. 0 = все
+     blogUrl        — куда ведёт «Смотреть все». Пусто — ссылка скрыта
+     articleUrl     — страница статьи, к ней добавится ?uid=
+     partUid        — идентификатор раздела «Блог» в каталоге Tilda
+     recid          — запасной вариант: номер блока на ЭТОЙ странице
+     excludeCurrent — убрать из списка статью, открытую сейчас
+                      (её uid берётся из адреса ?uid=). Для блока
+                      «Похожие статьи» на странице статьи.
+     hideIfEmpty    — если показывать нечего, убрать секцию целиком
+                      вместе с заголовком
+     surface        — true на странице статьи: секция становится нижней
+                      частью белой карточки с разделительной линией
+     ============================================================ */
+  var ES_CONFIG = {
+    title: 'Блог',
+    limit: 3,
+    blogUrl: '/blog',
+    articleUrl: '/article',
+    partUid: '',
+    recid: '',
+    excludeCurrent: false,
+    hideIfEmpty: false,
+    surface: false
+  };
+
+  var MONTHS = ['январь','февраль','март','апрель','май','июнь',
+                'июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+
+  var titleEl = document.getElementById('esBlogTitle');
+  var allEl = document.getElementById('esBlogAll');
+  var grid = document.getElementById('esBlogGrid');
+
+  titleEl.textContent = ES_CONFIG.title;
+  if (ES_CONFIG.blogUrl) allEl.setAttribute('href', ES_CONFIG.blogUrl);
+  else allEl.hidden = true;
+  grid.setAttribute('data-limited', ES_CONFIG.limit ? 'true' : 'false');
+  if (ES_CONFIG.surface) document.getElementById('esBlog').classList.add('es-blog--surface');
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  var ARROW = '<svg width="20" height="13" viewBox="0 0 20 13" fill="none" aria-hidden="true">'
+    + '<path d="M13 1L18.5 6.5L13 12M18 6.5H1" stroke="currentColor" stroke-width="1.7" '
+    + 'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  /* ---------- скрываем магазинные блоки ---------- */
+  function sourceBlocks() {
+    return [].filter.call(document.querySelectorAll('[id^="rec"]'), function (el) {
+      return el.querySelector(
+        '.js-product, .t-store, .js-store, .t-store__grid-cont, [class*="t-store__"]'
+      );
+    });
+  }
+  var sourcesDone = false;
+  (function keepHidden(n) {
+    sourceBlocks().forEach(function (b) {
+      b.classList.add(sourcesDone ? 'es-source-hidden' : 'es-source-loading');
+    });
+    if (n < 100) setTimeout(function () { keepHidden(n + 1); }, 250);
+  })(0);
+
+  /* ---------- дата ---------- */
+  // Краткое описание статьи: «2024-05-10 | Лид-абзац...»
+  // Здесь нужна только часть до «|».
+  function normalize(s) {
+    return String(s || '')
+      .replace(/[\u2010-\u2015\u2212]/g, '-')   // типографские тире → дефис
+      .replace(/[\u00a0\u2007\u202f]/g, ' ')    // неразрывные пробелы
+      .replace(/[\u200b-\u200f\ufeff]/g, '')    // невидимые символы
+      .trim();
+  }
+
+  function parseDate(raw) {
+    raw = normalize(String(raw || '').split('|')[0]);
+    var m = /^(\d{4})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2})$/.exec(raw);
+    if (!m) {
+      var d = /^(\d{1,2})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{4})$/.exec(raw);
+      if (d) m = [null, d[3], d[2], d[1]];
+    }
+    if (!m) return { text: raw, sort: 0 };
+    var y = +m[1], mo = +m[2], da = +m[3];
+    return {
+      text: da + ' ' + (MONTHS[mo - 1] || '') + ' ' + y + ' г.',
+      sort: y * 10000 + mo * 100 + da
+    };
+  }
+
+  /* ---------- сбор статей ---------- */
+  function collect() {
+    var cards;
+    if (ES_CONFIG.partUid) {
+      cards = document.querySelectorAll(
+        '.js-product[data-product-part-uid="' + ES_CONFIG.partUid + '"]');
+    } else if (ES_CONFIG.recid) {
+      var b = document.getElementById('rec' + ES_CONFIG.recid);
+      cards = b ? b.querySelectorAll('.js-product[data-product-uid]') : [];
+    } else {
+      cards = document.querySelectorAll('.js-product[data-product-uid]');
+    }
+    if (!cards.length) return null;
+
+    var list = [].map.call(cards, function (c) {
+      var nameEl = c.querySelector('.js-store-prod-name, .t-store__card__title');
+      var descrEl = c.querySelector('.js-store-prod-descr, .t-store__card__descr');
+      var d = parseDate(descrEl ? descrEl.textContent : '');
+      return {
+        uid: c.getAttribute('data-product-uid') || '',
+        name: nameEl ? nameEl.textContent.trim() : '',
+        img: c.getAttribute('data-product-img') || '',
+        date: d.text,
+        sort: d.sort
+      };
+    }).filter(function (p) { return p.name; });
+
+    list.sort(function (a, b) { return b.sort - a.sort; });   // свежие выше
+    return list;
+  }
+
+  /* ---------- рендер ---------- */
+  var section = document.getElementById('esBlog');
+
+  // uid статьи, открытой сейчас
+  var currentUid = ES_CONFIG.excludeCurrent
+    ? (new URLSearchParams(location.search).get('uid') || '')
+    : '';
+
+  // если секция может оказаться пустой, прячем её заранее и показываем
+  // только когда есть что выводить — иначе при любой задержке загрузки
+  // остаётся висеть пустой заголовок
+  if (ES_CONFIG.hideIfEmpty) section.style.display = 'none';
+
+  function render(list) {
+    if (currentUid) {
+      list = list.filter(function (p) { return p.uid !== currentUid; });
+    }
+    if (!list.length) {
+      if (ES_CONFIG.hideIfEmpty) { section.style.display = 'none'; return; }
+      grid.innerHTML = '<div class="es-blog__empty">Статьи не загрузились.</div>';
+      return;
+    }
+    section.style.display = '';
+    var shown = ES_CONFIG.limit ? list.slice(0, ES_CONFIG.limit) : list;
+    grid.innerHTML = shown.map(function (p) {
+      var href = ES_CONFIG.articleUrl + '?uid=' + encodeURIComponent(p.uid);
+      return '<a class="es-post" href="' + esc(href) + '">'
+        + '<div class="es-post__img">'
+        + (p.img ? '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" loading="lazy">' : '')
+        + '</div>'
+        + '<div class="es-post__body">'
+        +   '<div class="es-post__date">' + esc(p.date) + '</div>'
+        +   '<div class="es-post__foot">'
+        +     '<span class="es-post__name" title="' + esc(p.name) + '">' + esc(p.name) + '</span>'
+        +     ARROW
+        +   '</div>'
+        + '</div></a>';
+    }).join('');
+  }
+
+  /* ---------- ожидание загрузки ---------- */
+  var tries = 0;
+  (function wait() {
+    var list = collect();
+    if (list) { sourcesDone = true; render(list); return; }
+    if (++tries > 80) {
+      sourcesDone = true;
+      render([]);
+      console.warn('EcoSave: статьи не найдены. Проверьте partUid/recid в ES_CONFIG '
+        + 'и лимит товаров в блоке «Каталог товаров».');
+      return;
+    }
+    setTimeout(wait, 250);
+  })();
+})();
+</script>

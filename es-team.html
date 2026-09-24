@@ -1,0 +1,324 @@
+<!-- ================================================================
+     EcoSave — КОМАНДА
+     Блок T123 на странице «О компании».
+     Выше — скрытый блок «Каталог товаров» с разделом «Команда».
+     ================================================================ -->
+
+<section class="es-team" id="esTeam">
+  <h2 class="es-team__title" id="esTeamTitle">Команда</h2>
+  <div class="es-team__grid" id="esTeamGrid"></div>
+</section>
+
+<style>
+  .es-team {
+    --es-green: #4d9033;
+    --es-green-dark: #447f2d;
+    --es-ink: #1a1a1a;
+    --es-muted: #6e6e6e;
+    --es-card: #f7f7f7;
+    --es-radius: 14px;
+    color: var(--es-ink);
+    font-family: Inter, Sans-Serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 44px 20px;
+    box-sizing: border-box;
+  }
+  .es-team *,
+  .es-team *::before,
+  .es-team *::after {
+    box-sizing: border-box;
+  }
+
+  .es-team__title {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 24px;
+  }
+
+  .es-team__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .es-member {
+    background: var(--es-card);
+    border-radius: var(--es-radius);
+    padding: 28px 20px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+  }
+  .es-member__photo {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e7eae6;
+    margin-bottom: 18px;
+    flex: none;
+  }
+  .es-member__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .es-member__name {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 6px;
+  }
+  .es-member__role {
+    font-size: 15px;
+    color: var(--es-muted);
+    line-height: 1.4;
+  }
+  .es-member__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+    padding-top: 16px;
+    color: var(--es-green);
+    transition: color 0.15s ease;
+  }
+  .es-member__link:hover {
+    color: var(--es-green-dark);
+  }
+  .es-team__empty {
+    color: var(--es-muted);
+    font-size: 15px;
+    padding: 20px 0;
+  }
+
+  @media (max-width: 1000px) {
+    .es-team__grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    .es-team__title {
+      font-size: 26px;
+    }
+  }
+  @media (max-width: 700px) {
+    .es-team {
+      padding: 44px 16px;
+    }
+    .es-team__title {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    .es-team__grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .es-member {
+      padding: 22px 14px 18px;
+    }
+    .es-member__photo {
+      width: 84px;
+      height: 84px;
+      margin-bottom: 14px;
+    }
+    .es-member__name {
+      font-size: 14px;
+    }
+    .es-member__role {
+      font-size: 13px;
+    }
+    .es-member__link {
+      padding-top: 12px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .es-team * {
+      transition: none !important;
+    }
+  }
+
+  .es-source-loading {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  .es-source-hidden {
+    display: none !important;
+  }
+</style>
+
+<script>
+  (function () {
+    /* ============================================================
+     ES_CONFIG
+     title   — заголовок секции
+     partUid — идентификатор раздела «Команда» в каталоге Tilda
+     recid   — запасной вариант: номер блока на ЭТОЙ странице
+     ============================================================ */
+    var ES_CONFIG = {
+      title: "Команда",
+      partUid: "",
+      recid: "",
+    };
+
+    var IN =
+      '<svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">' +
+      '<rect x="1.1" y="1.1" width="23.8" height="23.8" rx="4" stroke="currentColor" stroke-width="1.6"/>' +
+      '<path d="M7.6 10.4v8.1M7.6 7.4v.1" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>' +
+      '<path d="M12.2 18.5v-8.1M12.2 13.4c0-1.7 1.2-3 2.9-3s2.9 1.3 2.9 3v5.1" ' +
+      'stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    var titleEl = document.getElementById("esTeamTitle");
+    var grid = document.getElementById("esTeamGrid");
+    titleEl.textContent = ES_CONFIG.title;
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[c];
+      });
+    }
+
+    /* ---------- скрываем магазинные блоки ---------- */
+    function sourceBlocks() {
+      return [].filter.call(
+        document.querySelectorAll('[id^="rec"]'),
+        function (el) {
+          return el.querySelector(
+            '.js-product, .t-store, .js-store, .t-store__grid-cont, [class*="t-store__"]',
+          );
+        },
+      );
+    }
+    var sourcesDone = false;
+    (function keepHidden(n) {
+      sourceBlocks().forEach(function (b) {
+        b.classList.add(sourcesDone ? "es-source-hidden" : "es-source-loading");
+      });
+      if (n < 100)
+        setTimeout(function () {
+          keepHidden(n + 1);
+        }, 250);
+    })(0);
+
+    /* ---------- сбор ---------- */
+    // Краткое описание: «Должность | https://www.linkedin.com/in/...»
+    function collect() {
+      var cards;
+      if (ES_CONFIG.partUid) {
+        cards = document.querySelectorAll(
+          '.js-product[data-product-part-uid="' + ES_CONFIG.partUid + '"]',
+        );
+      } else if (ES_CONFIG.recid) {
+        var b = document.getElementById("rec" + ES_CONFIG.recid);
+        cards = b ? b.querySelectorAll(".js-product[data-product-uid]") : [];
+      } else {
+        cards = document.querySelectorAll(".js-product[data-product-uid]");
+      }
+      if (!cards.length) return null;
+
+      return [].map
+        .call(cards, function (c) {
+          var nameEl = c.querySelector(
+            ".js-store-prod-name, .t-store__card__title",
+          );
+          var descrEl = c.querySelector(
+            ".js-store-prod-descr, .t-store__card__descr",
+          );
+          var raw = descrEl
+            ? descrEl.textContent.replace(/\s+/g, " ").trim()
+            : "";
+          var parts = raw.split("|");
+          var role = (parts.shift() || "").trim();
+          var link = parts.join("|").trim();
+
+          if (link && !/^https?:\/\//i.test(link)) {
+            link = /^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(link)
+              ? "https://" + link
+              : "";
+          }
+
+          return {
+            name: nameEl ? nameEl.textContent.trim() : "",
+            role: role,
+            link: link,
+            photo: c.getAttribute("data-product-img") || "",
+          };
+        })
+        .filter(function (p) {
+          return p.name;
+        });
+    }
+
+    /* ---------- рендер ---------- */
+    function render(list) {
+      if (!list.length) {
+        grid.innerHTML =
+          '<div class="es-team__empty">Сотрудники не загрузились.</div>';
+        return;
+      }
+      grid.innerHTML = list
+        .map(function (p) {
+          return (
+            '<div class="es-member">' +
+            '<div class="es-member__photo">' +
+            (p.photo
+              ? '<img src="' +
+                esc(p.photo) +
+                '" alt="' +
+                esc(p.name) +
+                '" loading="lazy">'
+              : "") +
+            "</div>" +
+            '<div class="es-member__name">' +
+            esc(p.name) +
+            "</div>" +
+            (p.role
+              ? '<div class="es-member__role">' + esc(p.role) + "</div>"
+              : "") +
+            (p.link
+              ? '<a class="es-member__link" href="' +
+                esc(p.link) +
+                '" target="_blank" ' +
+                'rel="noopener noreferrer" aria-label="LinkedIn: ' +
+                esc(p.name) +
+                '">' +
+                IN +
+                "</a>"
+              : "") +
+            "</div>"
+          );
+        })
+        .join("");
+    }
+
+    /* ---------- ожидание загрузки ---------- */
+    var tries = 0;
+    (function wait() {
+      var list = collect();
+      if (list) {
+        sourcesDone = true;
+        render(list);
+        return;
+      }
+      if (++tries > 80) {
+        sourcesDone = true;
+        render([]);
+        console.warn(
+          "EcoSave: сотрудники не найдены. Проверьте partUid/recid в ES_CONFIG.",
+        );
+        return;
+      }
+      setTimeout(wait, 250);
+    })();
+  })();
+</script>

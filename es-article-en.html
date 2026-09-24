@@ -1,0 +1,596 @@
+<!-- ================================================================
+     EcoSave — СТРАНИЦА СТАТЬИ (EN)
+     Блок T123 на Zero-Block-странице /article.
+     Выше — скрытый блок «Каталог товаров» с разделом «Блог»
+     (нужен, чтобы найти статью по ?uid=).
+     Ниже — блок T123 с es-blog.html в режиме «Похожие статьи»:
+       title: 'Похожие статьи', excludeCurrent: true, hideIfEmpty: true
+     ================================================================ -->
+
+<article class="es-art" id="esArt">
+  <a class="es-art__back" id="esArtBack" href="/blog">
+    <svg
+      width="18"
+      height="12"
+      viewBox="0 0 18 12"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M6.5 1L1.5 6L6.5 11M2 6H17"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+    Back
+  </a>
+  <div id="esArtBody"><div class="es-art__empty">Loading article…</div></div>
+</article>
+
+<style>
+  #allrecords {
+      background-color: #f7f7f7 !important;
+  }
+  .es-art {
+    --es-green: #4d9033;
+    --es-green-dark: #447f2d;
+    --es-ink: #1a1a1a;
+    --es-muted: #6e6e6e;
+    --es-card: #f7f7f7;
+    --es-radius: 14px;
+    color: var(--es-ink);
+    font-family: Inter, Sans-Serif;
+    max-width: 1200px;
+    margin: 24px auto;
+    box-sizing: border-box;
+    background: #fff;
+    border-radius: 14px;
+    padding: 32px;
+  }
+  .es-art *,
+  .es-art *::before,
+  .es-art *::after {
+    box-sizing: border-box;
+  }
+  .es-art__empty {
+    color: var(--es-muted);
+    font-size: 15px;
+    padding: 24px 0;
+  }
+
+  .es-art__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--es-green);
+    text-decoration: none;
+    font-size: 15px;
+    padding: 16px 0 22px;
+  }
+  .es-art__back:hover {
+    color: var(--es-green-dark);
+  }
+
+  .es-art__title {
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    margin: 0 0 18px;
+    max-width: 22ch;
+  }
+  .es-art__date {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: var(--es-ink);
+    margin-bottom: 18px;
+  }
+  .es-art__date svg {
+    color: var(--es-green);
+    flex: none;
+  }
+  .es-art__lead {
+    font-size: 16px;
+    line-height: 1.65;
+    color: #3a3a3a;
+    margin: 0 0 28px;
+    max-width: 64ch;
+  }
+  .es-art__cover {
+    width: 100%;
+    border-radius: var(--es-radius);
+    display: block;
+    margin-bottom: 34px;
+  }
+
+  /* ---------- типографика тела статьи ---------- */
+  .es-art__text {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #2a2a2a;
+  }
+  .es-art__text h2,
+  .es-art__text h3,
+  .es-art__text h4 {
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 32px 0 14px;
+    color: var(--es-ink);
+  }
+  .es-art__text h2:first-child,
+  .es-art__text h3:first-child {
+    margin-top: 0;
+  }
+  .es-art__text p {
+    margin: 0 0 16px;
+    text-align: justify;
+  }
+  .es-art__text ul,
+  .es-art__text ol {
+    margin: 0 0 20px;
+    padding-left: 22px;
+  }
+  .es-art__text li {
+    margin-bottom: 6px;
+  }
+  .es-art__text img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--es-radius);
+    display: block;
+    margin: 26px 0;
+  }
+  .es-art__text a {
+    color: var(--es-green);
+  }
+  .es-art__text table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 22px 0;
+  }
+  .es-art__text th,
+  .es-art__text td {
+    border: 1px solid #e4e7e3;
+    padding: 10px 14px;
+    text-align: left;
+  }
+
+  /* ---------- видео ---------- */
+  .es-video {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    margin: 28px 0;
+    border-radius: var(--es-radius);
+    overflow: hidden;
+    background: #e7eae6;
+    cursor: pointer;
+    border: 0;
+    padding: 0;
+    display: block;
+  }
+  .es-video img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .es-video iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .es-video__play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--es-green);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+    transition: transform 0.15s ease;
+  }
+  .es-video:hover .es-video__play {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+
+  @media (max-width: 760px) {
+  #allrecords {
+      background-color: #fff !important;
+  }
+    .es-art {
+      background: #fff;
+      border-radius: 0;
+      margin: 0 auto 32px !important;
+      padding: 16px;
+    }
+    .es-art__back {
+      font-size: 14px;
+      padding: 12px 0 16px;
+    }
+    .es-art__title {
+      font-size: 24px;
+      max-width: none;
+    }
+    .es-art__date {
+      font-size: 14px;
+    }
+    .es-art__lead {
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .es-art__cover {
+      margin-bottom: 24px;
+    }
+    .es-art__text {
+      font-size: 14px;
+    }
+    .es-art__text h2,
+    .es-art__text h3,
+    .es-art__text h4 {
+      font-size: 17px;
+      margin: 26px 0 12px;
+    }
+    .es-video__play {
+      width: 62px;
+      height: 62px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .es-art * {
+      transition: none !important;
+    }
+  }
+
+  .es-source-loading {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  .es-source-hidden {
+    display: none !important;
+  }
+</style>
+
+<script>
+  (function () {
+    var ES_CONFIG = {
+      blogUrl: "/en/blog", // куда ведёт «Назад»
+      pageBg: "#F5F6F5", // фон страницы за белой карточкой.
+      // Пусто — не трогать фон, задать в настройках страницы Tilda
+    };
+
+    // фон страницы: на десктопе серый, на мобильном белый — как в макете
+    if (ES_CONFIG.pageBg) {
+      var bg = document.createElement("style");
+      bg.textContent =
+        "@media (min-width:761px){body{background:" +
+        ES_CONFIG.pageBg +
+        " !important;}}" +
+        "@media (max-width:760px){body{background:#fff !important;}}";
+      document.head.appendChild(bg);
+    }
+
+    var MONTHS = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    var body = document.getElementById("esArtBody");
+    var uid = new URLSearchParams(location.search).get("uid") || "";
+    document
+      .getElementById("esArtBack")
+      .setAttribute("href", ES_CONFIG.blogUrl);
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[c];
+      });
+    }
+
+    var CAL =
+      '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
+      '<rect x="2.5" y="4" width="15" height="13.5" rx="2.5" stroke="currentColor" stroke-width="1.5"/>' +
+      '<path d="M2.5 8H17.5M6.5 2.5V5.5M13.5 2.5V5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+
+    function fail(msg) {
+      body.innerHTML =
+        '<div class="es-art__empty">' +
+        esc(msg) +
+        ' <a href="' +
+        esc(ES_CONFIG.blogUrl) +
+        '">Back to blog</a></div>';
+    }
+
+    /* ---------- дата и лид из краткого описания ---------- */
+    // «2024-05-10 | Плодородная почва — основа стабильного урожая…»
+    function normalize(s) {
+      return String(s || "")
+        .replace(/[\u2010-\u2015\u2212]/g, "-") // типографские тире → дефис
+        .replace(/[\u00a0\u2007\u202f]/g, " ") // неразрывные пробелы
+        .replace(/[\u200b-\u200f\ufeff]/g, "") // невидимые символы
+        .trim();
+    }
+
+    function splitDescr(raw) {
+      var parts = String(raw || "").split("|");
+      var d = normalize(parts.shift());
+      var lead = parts.join("|").trim();
+      var m = /^(\d{4})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2})$/.exec(d);
+      if (!m) {
+        var x = /^(\d{1,2})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{4})$/.exec(d);
+        if (x) m = [null, x[3], x[2], x[1]];
+      }
+      if (!m) {
+        // не дата — значит всё поле было лидом
+        return { date: "", lead: lead ? d + " | " + lead : d };
+      }
+      return {
+        date: +m[3] + " " + (MONTHS[+m[2] - 1] || "") + " " + m[1] + "",
+        lead: lead,
+      };
+    }
+
+    /* ---------- блоки-источники ---------- */
+    function sourceBlocks() {
+      return [].filter.call(
+        document.querySelectorAll('[id^="rec"]'),
+        function (el) {
+          return el.querySelector(
+            '.js-product, .t-store, .js-store, .t-store__grid-cont, [class*="t-store__"]',
+          );
+        },
+      );
+    }
+    var sourcesDone = false;
+    (function keepHidden(n) {
+      sourceBlocks().forEach(function (b) {
+        b.classList.add(sourcesDone ? "es-source-hidden" : "es-source-loading");
+      });
+      if (n < 100)
+        setTimeout(function () {
+          keepHidden(n + 1);
+        }, 250);
+    })(0);
+
+    /* ---------- находим карточку статьи ---------- */
+    function findCard() {
+      return new Promise(function (resolve) {
+        var tries = 0;
+        (function wait() {
+          var c = document.querySelector(
+            '.js-product[data-product-uid="' + uid + '"]',
+          );
+          if (c) {
+            sourcesDone = true;
+            return resolve(c);
+          }
+          if (++tries < 80) return setTimeout(wait, 250);
+          sourcesDone = true;
+          resolve(null);
+        })();
+      });
+    }
+
+    /* ---------- разбор системной страницы ---------- */
+    function parseDoc(doc) {
+      var el = doc.querySelector(
+        '.js-store-prod-text, [field^="st_text__"], .t-store__prod-popup__text',
+      );
+      var html = el ? el.innerHTML : "";
+
+      // Tilda экранирует содержимое поля «Текст»: в разметке лежит
+      // &lt;h2&gt;… вместо настоящих тегов, поэтому innerHTML выводился
+      // на странице как обычный текст. Берём textContent — в нём теги
+      // уже в исходном виде.
+      if (el && /&lt;\s*[a-z/]/i.test(html)) {
+        html = el.textContent;
+      }
+
+      var images = [];
+      doc
+        .querySelectorAll('[bgimgfield^="st_gallery__"]')
+        .forEach(function (g) {
+          var src = g.getAttribute("data-original");
+          if (src && images.indexOf(src) === -1) images.push(src);
+        });
+
+      var nameEl = doc.querySelector(".js-store-prod-name, .js-product-name");
+      var descrEl = doc.querySelector(
+        '.js-store-prod-descr, [field^="st_descr__"]',
+      );
+      return {
+        title: nameEl ? nameEl.textContent.trim() : "",
+        descr: descrEl ? descrEl.textContent.trim() : "",
+        images: images,
+        html: html,
+      };
+    }
+
+    /* ---------- видео из ссылок в тексте ---------- */
+    var YT =
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/;
+
+    function enhanceVideos(root) {
+      var nodes = [].slice.call(root.querySelectorAll("p, div, a"));
+      nodes.forEach(function (el) {
+        if (!el.parentNode) return;
+        var href = el.tagName === "A" ? el.getAttribute("href") || "" : "";
+        var text = (el.textContent || "").trim();
+        // элемент должен содержать только ссылку и ничего больше
+        if (el.tagName !== "A" && el.querySelector("img, iframe")) return;
+        var m = YT.exec(href) || YT.exec(text);
+        if (!m) return;
+        if (
+          el.tagName !== "A" &&
+          text
+            .replace(YT, "")
+            .replace(/https?:\/\/\S*/g, "")
+            .trim()
+        )
+          return;
+
+        var id = m[1];
+        var btn = document.createElement("button");
+        btn.className = "es-video";
+        btn.type = "button";
+        btn.setAttribute("aria-label", "Play video");
+        btn.innerHTML =
+          '<img src="https://i.ytimg.com/vi/' +
+          id +
+          '/maxresdefault.jpg" alt="" loading="lazy" ' +
+          "onerror=\"this.src='https://i.ytimg.com/vi/" +
+          id +
+          "/hqdefault.jpg'\">" +
+          '<span class="es-video__play"><svg width="30" height="34" viewBox="0 0 30 34" fill="currentColor" aria-hidden="true">' +
+          '<path d="M29 15.27a2 2 0 010 3.46L3 33.6A2 2 0 010 31.87V2.13A2 2 0 013 .4l26 14.87z"/></svg></span>';
+        btn.addEventListener(
+          "click",
+          function () {
+            btn.innerHTML =
+              '<iframe src="https://www.youtube.com/embed/' +
+              id +
+              '?autoplay=1" ' +
+              'title="Видео" allow="accelerometer; autoplay; clipboard-write; encrypted-media; ' +
+              'gyroscope; picture-in-picture" allowfullscreen></iframe>';
+          },
+          { once: true },
+        );
+
+        var target =
+          el.tagName === "A" &&
+          el.parentNode.tagName === "P" &&
+          el.parentNode.textContent.trim() === text
+            ? el.parentNode
+            : el;
+        target.parentNode.replaceChild(btn, target);
+      });
+    }
+
+    /* ---------- рендер ---------- */
+    function render(d) {
+      var meta = splitDescr(d.descr);
+      var cover = d.images[0] || "";
+
+      body.innerHTML =
+        '<h1 class="es-art__title">' +
+        esc(d.title) +
+        "</h1>" +
+        (meta.date
+          ? '<div class="es-art__date">' +
+            CAL +
+            "<span>" +
+            esc(meta.date) +
+            "</span></div>"
+          : "") +
+        (meta.lead
+          ? '<p class="es-art__lead">' + esc(meta.lead) + "</p>"
+          : "") +
+        (cover
+          ? '<img class="es-art__cover" src="' +
+            esc(cover) +
+            '" alt="' +
+            esc(d.title) +
+            '">'
+          : "") +
+        '<div class="es-art__text" id="esArtText"></div>';
+
+      var textEl = document.getElementById("esArtText");
+      textEl.innerHTML = d.html;
+      enhanceVideos(textEl);
+      document.title = d.title || document.title;
+    }
+
+    /* ---------- запуск ---------- */
+    if (!uid) {
+      fail("No article specified.");
+      return;
+    }
+
+    findCard()
+      .then(function (card) {
+        if (!card) {
+          fail("Article not found.");
+          return;
+        }
+        var url = card.getAttribute("data-product-url") || "";
+        var path;
+        try {
+          path = url ? new URL(url, location.origin).pathname : "";
+        } catch (e) {
+          path = "";
+        }
+        if (!path) {
+          fail("Could not determine the article address.");
+          return;
+        }
+
+        return fetch(path, { credentials: "same-origin" })
+          .then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.text();
+          })
+          .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, "text/html");
+            var data = parseDoc(doc);
+
+            // Дата и лид живут в кратком описании. На системной странице
+            // этого поля может не быть, поэтому берём его из карточки,
+            // которая уже загружена на этой странице.
+            if (!data.descr) {
+              var d = card.querySelector(
+                ".js-store-prod-descr, .t-store__card__descr",
+              );
+              if (d) data.descr = d.textContent.trim();
+            }
+            if (!data.title) {
+              var n = card.querySelector(
+                ".js-store-prod-name, .t-store__card__title",
+              );
+              if (n) data.title = n.textContent.trim();
+            }
+            if (!data.images.length) {
+              var ci = card.getAttribute("data-product-img");
+              if (ci) data.images = [ci];
+            }
+
+            if (!data.title) {
+              fail("Could not parse the article content.");
+              return;
+            }
+            render(data);
+          });
+      })
+      .catch(function (e) {
+        console.error("EcoSave:", e);
+        fail("Could not load the article.");
+      });
+  })();
+</script>

@@ -1,0 +1,182 @@
+<!-- ================================================================
+     EcoSave — МОБИЛЬНОЕ МЕНЮ
+     Блок T123 на странице, назначенной шапкой.
+
+     Подготовка в Tilda:
+     1. Элементу-бургеру во втором Zero-блоке задайте ссылку  #burger
+     2. Номер третьего Zero-блока (меню) впишите в ES_CONFIG.menuRecid
+     ================================================================ -->
+
+<style>
+  body {
+    padding-top: 78px !important;
+  }
+</style>
+<script>
+  (function () {
+    var ES_CONFIG = {
+      menuRecid: "000000000", // recid Zero-блока с меню, без «rec»
+      burgerLink: "#burger", // ссылка, назначенная элементу-бургеру
+      closeLink: "#burger-close", // необязательно: отдельный крестик внутри меню
+    };
+
+    var menu = document.getElementById("rec" + ES_CONFIG.menuRecid);
+    if (!menu) {
+      console.warn(
+        "EcoSave: блок меню #rec" + ES_CONFIG.menuRecid + " не найден.",
+      );
+      return;
+    }
+
+    /* ---------- стили ---------- */
+    var R = "#rec" + ES_CONFIG.menuRecid;
+    var css = document.createElement("style");
+    css.textContent =
+      // Tilda ставит display:block !important через настройку видимости
+      // по устройствам, поэтому перебиваем с той же силой
+      "body " +
+      R +
+      "{display:none !important;}" +
+      "body.es-menu-open " +
+      R +
+      "{" +
+      "display:block !important;" +
+      "position:relative;" +
+      "z-index:851;" + // над подложкой, под фиксированной шапкой
+      "}" +
+      // подложка на весь экран
+      ".es-menu-backdrop{" +
+      "position:fixed;inset:0;z-index:850;" +
+      "background:rgba(0,0,0,.3);" +
+      "-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);" +
+      "opacity:0;pointer-events:none;transition:opacity .2s ease;" +
+      "}" +
+      "body.es-menu-open .es-menu-backdrop{opacity:1;pointer-events:auto;}" +
+      // прокрутка страницы под меню остановлена
+      "html.es-menu-open,body.es-menu-open{overflow:hidden !important;}" +
+      'a[href$="' +
+      ES_CONFIG.burgerLink +
+      '"]{cursor:pointer;}' +
+      // переключение иконок: крестик спрятан, пока меню закрыто
+      ".es-icon-close{display:none !important;}" +
+      "body.es-menu-open .es-icon-close{display:block !important;}" +
+      "body.es-menu-open .es-icon-burger{display:none !important;}" +
+      "@media (prefers-reduced-motion:reduce){.es-menu-backdrop{transition:none;}}";
+    document.head.appendChild(css);
+
+    /* ---------- подложка ---------- */
+    var backdrop = document.createElement("div");
+    backdrop.className = "es-menu-backdrop";
+    backdrop.addEventListener("click", function () {
+      close();
+    });
+    document.body.appendChild(backdrop);
+
+    /* ---------- размечаем элементы с иконками ---------- */
+    // в Zero-блоке картинка лежит в <a class="tn-atom"> внутри .tn-elem,
+    // прятать нужно именно .tn-elem, иначе его место останется занятым
+    function markIcons() {
+      function tag(link, cls) {
+        document
+          .querySelectorAll('a[href$="' + link + '"]')
+          .forEach(function (a) {
+            var el = a.closest(".tn-elem") || a;
+            el.classList.add(cls);
+          });
+      }
+      tag(ES_CONFIG.burgerLink, "es-icon-burger");
+      if (ES_CONFIG.closeLink) tag(ES_CONFIG.closeLink, "es-icon-close");
+    }
+
+    markIcons();
+    window.addEventListener("load", markIcons);
+    setTimeout(markIcons, 600);
+
+    /* ---------- открытие и закрытие ---------- */
+    function isOpen() {
+      return document.body.classList.contains("es-menu-open");
+    }
+
+    function open() {
+      document.documentElement.classList.add("es-menu-open");
+      document.body.classList.add("es-menu-open");
+      document
+        .querySelectorAll('a[href$="' + ES_CONFIG.burgerLink + '"]')
+        .forEach(function (b) {
+          b.setAttribute("aria-expanded", "true");
+        });
+    }
+
+    function close() {
+      document.documentElement.classList.remove("es-menu-open");
+      document.body.classList.remove("es-menu-open");
+      document
+        .querySelectorAll('a[href$="' + ES_CONFIG.burgerLink + '"]')
+        .forEach(function (b) {
+          b.setAttribute("aria-expanded", "false");
+        });
+    }
+
+    function toggle() {
+      isOpen() ? close() : open();
+    }
+
+    /* ---------- клики ---------- */
+    document.addEventListener(
+      "click",
+      function (e) {
+        var link = e.target.closest ? e.target.closest("a") : null;
+
+        // бургер
+        if (
+          link &&
+          link.getAttribute("href") &&
+          link.getAttribute("href").slice(-ES_CONFIG.burgerLink.length) ===
+            ES_CONFIG.burgerLink
+        ) {
+          e.preventDefault();
+          toggle();
+          return;
+        }
+
+        // крестик внутри меню
+        if (
+          link &&
+          ES_CONFIG.closeLink &&
+          link.getAttribute("href") &&
+          link.getAttribute("href").slice(-ES_CONFIG.closeLink.length) ===
+            ES_CONFIG.closeLink
+        ) {
+          e.preventDefault();
+          close();
+          return;
+        }
+
+        if (!isOpen()) return;
+
+        // любая ссылка внутри меню: пункт, язык, кнопка, логотип
+        if (link && menu.contains(link)) {
+          close();
+          return;
+        }
+
+        // клик мимо меню
+        if (!menu.contains(e.target)) close();
+      },
+      true,
+    );
+
+    /* ---------- клавиатура и разворот экрана ---------- */
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && isOpen()) close();
+    });
+
+    window.addEventListener("resize", function () {
+      // на десктопе меню скрыто самой Tilda — снимаем блокировку прокрутки
+      if (isOpen() && window.innerWidth > 980) close();
+    });
+
+    // переход по якорю на той же странице не перезагружает её
+    window.addEventListener("hashchange", close);
+  })();
+</script>

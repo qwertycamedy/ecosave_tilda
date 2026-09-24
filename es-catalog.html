@@ -1,0 +1,520 @@
+<!-- ================================================================
+     EcoSave — КАТАЛОГ
+     Вставить в блок T123 (HTML-код) на странице каталога.
+     Перед блоком T123 должны стоять 4 скрытых блока «Каталог товаров»,
+     каждый настроен на свою категорию. Их recid'ы вписать в ES_CONFIG.
+     ================================================================ -->
+
+<div class="es-catalog" id="esCatalog">
+  <div class="es-filter">
+    <span class="es-filter__label">Показать:</span>
+    <div class="es-filter__items" id="esFilter"></div>
+  </div>
+  <div class="es-sections" id="esSections">
+    <div class="es-empty">Загружаем каталог…</div>
+  </div>
+</div>
+
+<style>
+  /* ---------- токены ---------- */
+  .es-catalog {
+    --es-green: #3e8e41;
+    --es-green-dark: #317434;
+    --es-ink: #1a1a1a;
+    --es-muted: #6e6e6e;
+    --es-card: #f7f7f7;
+    --es-line: #e4e7e3;
+    --es-radius: 14px;
+    color: var(--es-ink);
+    font-family: Inter, Sans-Serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+  .es-catalog *,
+  .es-catalog *::before,
+  .es-catalog *::after {
+    box-sizing: border-box;
+  }
+
+  /* ---------- фильтр ---------- */
+  .es-filter {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px 28px;
+    padding: 18px 0 22px;
+    border-bottom: 1px solid var(--es-line);
+    margin-bottom: 34px;
+  }
+  .es-filter__label {
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .es-filter__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 28px;
+  }
+  .es-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1.2;
+    user-select: none;
+  }
+  .es-check input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .es-check__box {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    border: 1.5px solid var(--es-green);
+    border-radius: 6px;
+    background: #fff;
+    position: relative;
+    transition: background 0.15s ease;
+  }
+  .es-check__box::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 11px;
+    border: solid var(--es-green);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) scale(0);
+    transition: transform 0.15s ease;
+  }
+  .es-check input:checked + .es-check__box::after {
+    transform: rotate(45deg) scale(1);
+  }
+  .es-check input:focus-visible + .es-check__box {
+    outline: 2px solid var(--es-green);
+    outline-offset: 2px;
+  }
+
+  /* ---------- секции ---------- */
+  .es-section {
+    margin-bottom: 56px;
+  }
+  .es-section__title {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 22px;
+  }
+  .es-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 24px;
+  }
+
+  /* ---------- карточка ---------- */
+  .es-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--es-card);
+    border-radius: var(--es-radius);
+    padding: 18px 18px 20px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .es-card__img {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+  }
+  .es-card__img img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .es-card__title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .es-card__descr {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--es-muted);
+    margin: 0 0 18px;
+    /* ровно две строки: короткий текст добирает высоту, длинный обрезается */
+    height: 3.1em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .es-btn {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--es-green);
+    color: #fff;
+    border-radius: 8px;
+    padding: 11px 16px 11px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s ease;
+  }
+  .es-card:hover .es-btn {
+    background: var(--es-green-dark);
+  }
+  .es-btn svg {
+    flex: none;
+  }
+  .es-empty {
+    color: var(--es-muted);
+    font-size: 15px;
+    padding: 24px 0;
+  }
+
+  /* ---------- адаптив ---------- */
+  @media (max-width: 1100px) {
+    .es-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 760px) {
+    .es-catalog {
+      padding: 0 16px;
+    }
+    .es-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .es-section {
+      margin-bottom: 38px;
+    }
+    .es-section__title {
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+    .es-card {
+      padding: 12px 12px 14px;
+    }
+    .es-card__img {
+      height: 104px;
+      margin-bottom: 14px;
+    }
+    .es-card__title {
+      font-size: 14px;
+    }
+    .es-card__descr {
+      font-size: 11px;
+      margin-bottom: 12px;
+    }
+    .es-btn {
+      font-size: 12px;
+      padding: 9px 12px 9px 14px;
+      border-radius: 7px;
+    }
+    .es-filter {
+      gap: 10px 18px;
+      padding: 14px 0 16px;
+      margin-bottom: 22px;
+    }
+    .es-filter__items {
+      gap: 10px 18px;
+    }
+    .es-check {
+      font-size: 13px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .es-catalog * {
+      transition: none !important;
+    }
+  }
+
+  /* блоки-источники: пока грузятся — прозрачные, но остаются в потоке
+     и в зоне видимости, иначе Tilda не инициализирует выдачу товаров */
+  .es-source-loading {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  /* после того как товары прочитаны — убираем совсем */
+  .es-source-hidden {
+    display: none !important;
+  }
+</style>
+
+<script>
+  (function () {
+    /* ============================================================
+     ES_CONFIG — единственное место, которое нужно править
+     recid  — номер нативного блока «Каталог товаров» без «rec»
+     name   — заголовок секции и подпись чекбокса
+     ============================================================ */
+    var ES_CONFIG = {
+      productPageUrl: "/prep", // адрес страницы товара
+      categories: [
+        {
+          recid: "3812179203",
+          name: "Стимуляторы роста",
+        },
+
+        {
+          recid: "3777481503",
+          name: "Биопрепараты",
+        },
+
+        {
+          recid: "3777481603",
+          name: "Удобрения",
+        },
+
+        {
+          recid: "3777481803",
+          name: "Адъюванты",
+        },
+      ],
+    };
+
+    var ARROW =
+      '<svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true">' +
+      '<path d="M11.5 1L16.5 6L11.5 11M16 6H1" stroke="currentColor" stroke-width="1.6" ' +
+      'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[c];
+      });
+    }
+
+    /* ---------- адаптер: карточка нативного блока -> объект товара ---------- */
+    function readCard(card) {
+      var uid =
+        card.getAttribute("data-product-uid") ||
+        card.getAttribute("data-product-lid") ||
+        card.getAttribute("data-product-gen-uid") ||
+        "";
+      if (!uid) return { uid: "", title: "" }; // служебная карточка-шаблон
+
+      var titleEl = card.querySelector(
+        ".js-store-prod-name, .js-product-name, .t-store__card__title",
+      );
+      var descrEl = card.querySelector(
+        ".js-store-prod-descr, .t-store__card__descr",
+      );
+
+      // полноразмерная картинка: в background-image лежит превью x20
+      var img = card.getAttribute("data-product-img") || "";
+      if (!img) {
+        var imgEl = card.querySelector(".js-product-img, .t-store__card__bgimg");
+        if (imgEl) {
+          img =
+            imgEl.getAttribute("data-original") ||
+            (imgEl.style.backgroundImage || "")
+              .replace(/^url\(["']?/, "")
+              .replace(/["']?\)$/, "");
+        }
+      }
+
+      var raw = descrEl ? descrEl.textContent : "";
+      var descr = raw.replace(/\s+/g, " ").trim();
+
+      // системный адрес товара Tilda — с него страница товара берёт полные данные
+      var url = card.getAttribute("data-product-url") || "";
+      try {
+        url = url ? new URL(url, location.origin).pathname : "";
+      } catch (e) {
+        url = "";
+      }
+
+      return {
+        uid: uid,
+        title: titleEl ? titleEl.textContent.trim() : "",
+        img: img,
+        descr: descr,
+        url: url,
+      };
+    }
+
+    function collect(recid) {
+      var block = document.getElementById("rec" + recid);
+      if (!block) return null; // блок ещё не в DOM
+      // гасим прозрачностью, но НЕ выносим из потока — иначе товары не загрузятся
+      block.classList.add("es-source-loading");
+      var cards = block.querySelectorAll(
+        ".js-product, .t-store__card, .js-store-product, .t-store__card__wrapper",
+      );
+      if (!cards.length) return null; // товары ещё грузятся
+      var items = Array.prototype.map
+        .call(cards, readCard)
+        .filter(function (p) {
+          return p.title;
+        });
+      if (!items.length) return null;
+      block.classList.add("es-source-hidden"); // прочитали — убираем совсем
+      return items;
+    }
+
+    /* ---------- диагностика ---------- */
+    function diagnose() {
+      console.group("EcoSave: каталог не собрался");
+      ES_CONFIG.categories.forEach(function (c) {
+        var b = document.getElementById("rec" + c.recid);
+        if (!b) {
+          console.warn(c.name + " — блока #rec" + c.recid + " нет на странице");
+          return;
+        }
+        var n = b.querySelectorAll(".js-product, .t-store__card").length;
+        console.warn(
+          c.name + " — блок найден, карточек: " + n +
+            (n ? " (не распознался заголовок товара)" : " (товары не загрузились)"),
+        );
+      });
+      var stores = [].filter
+        .call(document.querySelectorAll("[id^=rec]"), function (e) {
+          return e.querySelector(".t-store, .js-store");
+        })
+        .map(function (e) {
+          return e.id;
+        });
+      console.info("Все магазинные блоки на странице:", stores.join(", ") || "нет");
+      console.groupEnd();
+    }
+
+    /* ---------- рендер ---------- */
+    function cardHtml(p) {
+      var href =
+        ES_CONFIG.productPageUrl + "?uid=" + encodeURIComponent(p.uid);
+      return (
+        '<a class="es-card" href="' +
+        esc(href) +
+        '">' +
+        '<div class="es-card__img">' +
+        (p.img
+          ? '<img src="' +
+            esc(p.img) +
+            '" alt="' +
+            esc(p.title) +
+            '" loading="lazy">'
+          : "") +
+        "</div>" +
+        '<div class="es-card__title" title="' +
+        esc(p.title) +
+        '">' +
+        esc(p.title) +
+        "</div>" +
+        '<div class="es-card__descr">' +
+        esc(p.descr) +
+        "</div>" +
+        '<span class="es-btn">Подробнее' +
+        ARROW +
+        "</span>" +
+        "</a>"
+      );
+    }
+
+    function render(data) {
+      var filter = document.getElementById("esFilter");
+      var wrap = document.getElementById("esSections");
+
+      // ?cat=Удобрения — открыть каталог с одной выбранной категорией
+      var want = (new URLSearchParams(location.search).get("cat") || "")
+        .trim()
+        .toLowerCase();
+      function isOn(c) {
+        return !want || c.name.trim().toLowerCase() === want;
+      }
+
+      filter.innerHTML = ES_CONFIG.categories
+        .map(function (c, i) {
+          return (
+            '<label class="es-check">' +
+            '<input type="checkbox" ' +
+            (isOn(c) ? "checked" : "") +
+            ' data-idx="' +
+            i +
+            '">' +
+            '<span class="es-check__box"></span><span>' +
+            esc(c.name) +
+            "</span></label>"
+          );
+        })
+        .join("");
+
+      wrap.innerHTML =
+        ES_CONFIG.categories
+          .map(function (c, i) {
+            var items = data[i] || [];
+            if (!items.length) return "";
+            return (
+              '<section class="es-section" data-idx="' +
+              i +
+              '"' +
+              (isOn(c) ? "" : ' style="display:none"') +
+              ">" +
+              '<h2 class="es-section__title">' +
+              esc(c.name) +
+              "</h2>" +
+              '<div class="es-grid">' +
+              items.map(cardHtml).join("") +
+              "</div>" +
+              "</section>"
+            );
+          })
+          .join("") || '<div class="es-empty">Товары не найдены.</div>';
+
+      filter.addEventListener("change", function (e) {
+        var cb = e.target;
+        if (!cb || cb.type !== "checkbox") return;
+        var sec = wrap.querySelector(
+          '.es-section[data-idx="' + cb.getAttribute("data-idx") + '"]',
+        );
+        if (sec) sec.style.display = cb.checked ? "" : "none";
+      });
+    }
+
+    /* ---------- ожидание загрузки товаров ---------- */
+    var tries = 0;
+    (function wait() {
+      var data = ES_CONFIG.categories.map(function (c) {
+        return collect(c.recid);
+      });
+      var ready = data.every(function (d) {
+        return d !== null;
+      });
+      if (ready) {
+        render(data);
+        return;
+      }
+      if (++tries > 80) {
+        // ~20 с
+        diagnose();
+        render(
+          data.map(function (d) {
+            return d || [];
+          }),
+        );
+        return;
+      }
+      setTimeout(wait, 250);
+    })();
+  })();
+</script>

@@ -1,0 +1,360 @@
+<!-- ================================================================
+     EcoSave — ЯЗЫКОВЫЕ ВЕРСИИ
+     Блок T123 на страницах шапки и подвала.
+
+     Структура сайта:
+       /            — русская версия
+       /en/...      — английская
+       /kz/...      — казахская
+
+     Что делает код:
+     1. Определяет язык по адресу страницы.
+     2. Переводит надписи в шапке и подвале по словарю.
+     3. Дописывает языковой префикс во внутренние ссылки.
+     4. Настраивает переключатель RU | EN | KZ и подсвечивает текущий.
+     ================================================================ -->
+
+<script>
+  (function () {
+    var ES_CONFIG = {
+      scopes: ["#t-header", "#t-footer"],
+      defaultLang: "ru",
+      langs: ["ru", "en", "kz"],
+
+      activeColor: "#4D9033",
+
+      // Десктоп: группе с кодом языка и стрелкой задайте ссылку #lang —
+      // по ней код находит переключатель и вешает под него список.
+      triggerLink: "#lang",
+
+      // Мобильное меню: recid Zero-блока. Нужен, чтобы отличить
+      // три пункта KZ | RU | EN от десктопного переключателя.
+      mobileRecid: "",
+
+      // Подписи в списке
+      labels: { ru: "RU", en: "EN", kz: "KZ" },
+
+      // Страницы, с которых смена языка ведёт на главную,
+      // а не на языковой аналог того же адреса.
+      resetPages: ["/prep", "/article"],
+
+      // Словарь: ключ — русская надпись, значения — переводы.
+      // Регистр и лишние пробелы не важны.
+      dict: {
+        Каталог: { en: "Catalog", kz: "Каталог" },
+        Субсидирование: { en: "Subsidies", kz: "Субсидиялау" },
+        Блог: { en: "Blog", kz: "Блог" },
+        Отзывы: { en: "Reviews", kz: "Пікірлер" },
+        "О компании": { en: "About", kz: "Компания туралы" },
+        Контакты: { en: "Contacts", kz: "Байланыс" },
+        "Связаться с нами": { en: "Contact us", kz: "Бізбен байланысу" },
+        "Политика конфиденциальности": {
+          en: "Privacy policy",
+          kz: "Құпиялылық саясаты",
+        },
+      },
+    };
+
+    /* ---------- текущий язык ---------- */
+    function detect() {
+      var seg = location.pathname.split("/").filter(Boolean)[0];
+      return ES_CONFIG.langs.indexOf(seg) > 0 ? seg : ES_CONFIG.defaultLang;
+    }
+
+    var lang = detect();
+    var prefix = lang === ES_CONFIG.defaultLang ? "" : "/" + lang;
+
+    document.documentElement.setAttribute("lang", lang === "kz" ? "kk" : lang);
+
+    function key(s) {
+      return String(s || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
+
+    // словарь с нормализованными ключами
+    var DICT = {};
+    Object.keys(ES_CONFIG.dict).forEach(function (ru) {
+      DICT[key(ru)] = ES_CONFIG.dict[ru];
+    });
+
+    /* ---------- стили переключателя ---------- */
+    var G = ES_CONFIG.activeColor;
+    var css = document.createElement("style");
+    css.textContent =
+      // активный язык: цвет + зелёная полоска под текстом
+      ".es-lang-active,.es-lang-active .tn-atom{" +
+      "color:" +
+      G +
+      " !important;" +
+      "}" +
+      ".es-lang-active{position:relative;}" +
+      ".es-lang-active::after{" +
+      "content:'';position:absolute;left:0;right:0;bottom:-6px;" +
+      "height:2px;background:" +
+      G +
+      ";border-radius:1px;" +
+      "}" +
+      // стрелка переключателя
+      ".es-lang-arrow{transition:transform .15s ease;}" +
+      ".es-lang-open .es-lang-arrow{transform:rotate(180deg);}" +
+      // список языков
+      ".es-langdrop{" +
+      "position:fixed;z-index:10050;min-width:64px;" +
+      "background:#fff;border-radius:10px;padding:4px;" +
+      "box-shadow:0 8px 28px rgba(0,0,0,.14);" +
+      "font-family:Inter,Sans-Serif;" +
+      "opacity:0;pointer-events:none;transform:translateY(-4px);" +
+      "transition:opacity .15s ease,transform .15s ease;" +
+      "}" +
+      ".es-langdrop_open{opacity:1;pointer-events:auto;transform:translateY(0);}" +
+      ".es-langdrop a{" +
+      "display:block;padding:7px 10px;border-radius:6px;text-align:center;" +
+      "font-size:15px;line-height:1;color:#1A1A1A;text-decoration:none;" +
+      "}" +
+      ".es-langdrop a:hover{background:#F2F5F1;}" +
+      ".es-langdrop a[aria-current='true']{color:" +
+      G +
+      ";font-weight:600;}" +
+      "@media (prefers-reduced-motion:reduce){" +
+      ".es-langdrop,.es-lang-arrow{transition:none;}" +
+      "}";
+    document.head.appendChild(css);
+
+    /* ---------- перевод надписей ---------- */
+    function translate(root) {
+      if (lang === ES_CONFIG.defaultLang) return;
+
+      // Текст в Zero-блоке может лежать и в .tn-atom, и глубже —
+      // внутри групп. Поэтому перебираем все конечные элементы:
+      // замена срабатывает только при точном совпадении со словарём.
+      root.querySelectorAll("*").forEach(function (el) {
+        if (el.children.length) return; // только конечные узлы
+        if (el.dataset.esLangDone) return;
+
+        var t = DICT[key(el.textContent)];
+        if (!t || !t[lang]) return;
+
+        el.dataset.esLangDone = "1";
+        el.textContent = t[lang];
+      });
+    }
+
+    /* ---------- языковой префикс во внутренних ссылках ---------- */
+    function localizeLinks(root) {
+      if (!prefix) return;
+
+      root.querySelectorAll('a[href^="/"]').forEach(function (a) {
+        var href = a.getAttribute("href");
+        if (!href || a.dataset.esLangHref) return;
+
+        // уже с префиксом какого-то языка — не трогаем
+        var seg = href.split("/").filter(Boolean)[0];
+        if (ES_CONFIG.langs.indexOf(seg) > 0) return;
+
+        a.dataset.esLangHref = "1";
+        a.setAttribute("href", prefix + (href === "/" ? "" : href) || "/");
+      });
+    }
+
+    /* ---------- десктопный дропдаун ---------- */
+    // Триггер — группа с кодом языка и стрелкой, помеченная ссылкой #lang
+    function findTrigger() {
+      var header = document.querySelector("#t-header");
+      if (!header) return null;
+      var link = ES_CONFIG.triggerLink;
+      var all = header.querySelectorAll('a[href$="' + link + '"]');
+      return all.length ? all[all.length - 1] : null;
+    }
+
+    var drop = null;
+
+    function buildDrop() {
+      if (drop) return drop;
+
+      drop = document.createElement("div");
+      drop.className = "es-langdrop";
+      drop.setAttribute("role", "menu");
+
+      ES_CONFIG.langs.forEach(function (code) {
+        var a = document.createElement("a");
+        a.setAttribute("href", urlFor(code));
+        a.dataset.esLangHref = "1"; // адрес уже с нужным префиксом
+        a.setAttribute("role", "menuitem");
+        if (code === lang) a.setAttribute("aria-current", "true");
+        a.textContent = ES_CONFIG.labels[code] || code.toUpperCase();
+        drop.appendChild(a);
+      });
+
+      document.body.appendChild(drop);
+      return drop;
+    }
+
+    function place(trigger) {
+      var r = trigger.getBoundingClientRect();
+      drop.style.top = Math.round(r.bottom + 10) + "px";
+      // прижимаем к левому краю переключателя, но не выходим за экран
+      var left = Math.min(
+        Math.round(r.left),
+        window.innerWidth - drop.offsetWidth - 12,
+      );
+      drop.style.left = Math.max(12, left) + "px";
+    }
+
+    function initDrop() {
+      var trigger = findTrigger();
+      if (!trigger || trigger.dataset.esLangDrop) return;
+      trigger.dataset.esLangDrop = "1";
+
+      buildDrop();
+
+      // стрелка внутри переключателя — её разворачиваем при открытии
+      var arrow = trigger.querySelector("img,svg");
+      if (arrow) arrow.classList.add("es-lang-arrow");
+
+      // В зеро-блоке в переключателе зашит один код, например RU.
+      // Подставляем код текущей версии сайта.
+      var label = ES_CONFIG.labels[lang] || lang.toUpperCase();
+      var codeEl = null;
+      trigger.querySelectorAll("*").forEach(function (el) {
+        if (el.children.length) return;
+        if (ES_CONFIG.langs.indexOf(key(el.textContent)) !== -1) codeEl = el;
+      });
+      if (!codeEl && ES_CONFIG.langs.indexOf(key(trigger.textContent)) !== -1) {
+        codeEl = trigger;
+      }
+      if (codeEl && key(codeEl.textContent) !== lang)
+        codeEl.textContent = label;
+
+      function isOpen() {
+        return drop.classList.contains("es-langdrop_open");
+      }
+
+      function open() {
+        place(trigger);
+        drop.classList.add("es-langdrop_open");
+        trigger.classList.add("es-lang-open");
+        trigger.setAttribute("aria-expanded", "true");
+      }
+
+      function close() {
+        drop.classList.remove("es-langdrop_open");
+        trigger.classList.remove("es-lang-open");
+        trigger.setAttribute("aria-expanded", "false");
+      }
+
+      trigger.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        isOpen() ? close() : open();
+      });
+
+      document.addEventListener("mousedown", function (e) {
+        if (!isOpen()) return;
+        if (!drop.contains(e.target) && !trigger.contains(e.target)) close();
+      });
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && isOpen()) close();
+      });
+
+      // список закреплён по координатам, поэтому при прокрутке
+      // и смене размеров его нужно либо сдвинуть, либо убрать
+      window.addEventListener(
+        "scroll",
+        function () {
+          if (isOpen()) place(trigger);
+        },
+        { passive: true },
+      );
+      window.addEventListener("resize", function () {
+        if (isOpen()) close();
+      });
+    }
+
+    /* ---------- переключатель RU | EN | KZ ---------- */
+    // Тот же адрес, но в другой языковой версии
+    function urlFor(target) {
+      var path = location.pathname;
+      var parts = path.split("/").filter(Boolean);
+
+      if (ES_CONFIG.langs.indexOf(parts[0]) > 0) parts.shift(); // снимаем текущий
+      var rest = parts.length ? "/" + parts.join("/") : "/";
+
+      var p = target === ES_CONFIG.defaultLang ? "" : "/" + target;
+
+      // Страницы товара и статьи открываются по ?uid=, а идентификаторы
+      // в языковых разделах каталога свои. Переносить их бессмысленно,
+      // поэтому с таких страниц переключение уводит на главную.
+      if (ES_CONFIG.resetPages.indexOf(rest) !== -1) return p || "/";
+
+      return p + (rest === "/" ? "" : rest) || "/";
+    }
+
+    function switcher(root) {
+      var trigger = findTrigger();
+
+      root.querySelectorAll(".tn-atom, a").forEach(function (el) {
+        var code = key(el.textContent);
+        if (ES_CONFIG.langs.indexOf(code) === -1) return;
+        if (el.children.length && el.tagName !== "A") return;
+        // десктопный переключатель обрабатывается дропдауном
+        if (trigger && (trigger === el || trigger.contains(el))) return;
+
+        var a = el;
+        if (el.tagName !== "A") {
+          // текст-элемент Zero-блока превращаем в ссылку,
+          // сохраняя классы и атрибуты — раскладка не поедет
+          a = document.createElement("a");
+          for (var i = 0; i < el.attributes.length; i++) {
+            a.setAttribute(el.attributes[i].name, el.attributes[i].value);
+          }
+          a.innerHTML = el.innerHTML;
+          el.parentNode.replaceChild(a, el);
+        }
+
+        a.setAttribute("href", urlFor(code));
+        a.dataset.esLangHref = "1"; // адрес уже с нужным префиксом
+        a.classList.toggle("es-lang-active", code === lang);
+      });
+    }
+
+    /* ---------- запуск ---------- */
+    function run() {
+      ES_CONFIG.scopes.forEach(function (sel) {
+        var root = document.querySelector(sel);
+        if (!root) return;
+        translate(root);
+        switcher(root);
+      });
+
+      // Префикс дописываем по всей странице, а не только в шапке:
+      // ссылки «Смотреть все», карточки каталога, блога и отзывов
+      // живут в блоках T123 на самих страницах.
+      localizeLinks(document.body);
+
+      initDrop();
+    }
+
+    run();
+    // шапка, подвал и мобильное меню дорисовываются после загрузки
+    window.addEventListener("load", run);
+    setTimeout(run, 600);
+    setTimeout(run, 1500);
+
+    // Секции каталога, блога и отзывов рисуют ссылки асинхронно,
+    // иногда спустя несколько секунд после загрузки. Поэтому следим
+    // за появлением новых узлов и дописываем префикс им тоже.
+    if (prefix && "MutationObserver" in window) {
+      var pending = null;
+      new MutationObserver(function () {
+        if (pending) return;
+        pending = setTimeout(function () {
+          pending = null;
+          localizeLinks(document.body);
+        }, 120);
+      }).observe(document.body, { childList: true, subtree: true });
+    }
+  })();
+</script>

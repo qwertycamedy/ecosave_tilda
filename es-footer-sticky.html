@@ -1,0 +1,99 @@
+<!-- ================================================================
+     EcoSave — ФУТЕР ВНИЗУ ЭКРАНА
+     Блок T123 на странице, назначенной подвалом.
+     Работает на всех страницах сайта, так как подвал подключается ко всем.
+     ================================================================ -->
+
+<style>
+  /* Короткая страница: подвал прижимается к низу окна.
+   Длинная страница: подвал идёт сразу за контентом, как обычно.
+
+   Структура Tilda: шапка, записи страницы и подвал лежат ВНУТРИ #allrecords,
+   поэтому растягивать нужно именно его, а не body:
+     <body class="t-body">
+       <div id="allrecords">
+         <header id="t-header">…</header>
+         <div id="rec…">…</div>
+         <footer id="t-footer">…</footer>
+       </div>
+     </body>                                                            */
+
+  html {
+    height: auto;
+  }
+
+  body.t-body {
+    min-height: 100vh;
+    min-height: 100dvh; /* мобильные браузеры: без учёта адресной строки */
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box; /* иначе padding-top шапки добавит лишнюю высоту */
+  }
+
+  /* контейнер записей растягивается на всю свободную высоту */
+  body.t-body > #allrecords {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  /* подвал уходит вниз — и когда он внутри #allrecords, и когда рядом с ним */
+  #allrecords > #t-footer,
+  body.t-body > #t-footer {
+    margin-top: auto;
+  }
+
+  #allrecords > #t-header,
+  #allrecords > #t-footer {
+    flex: 0 0 auto;
+  }
+
+  body.t-body > #tildacopy {
+    flex: 0 0 auto;
+  }
+
+  /* всплывающие окна и прочие служебные узлы не должны участвовать в раскладке */
+  body.t-body > .t-popup,
+  body.t-body > .t-feed__post-popup,
+  body.t-body > [class*="t-popup"] {
+    flex: 0 0 auto;
+  }
+</style>
+
+<script>
+  (function () {
+    var ES_CONFIG = {
+      // Плашка «Made on Tilda».
+      // Убирать её можно только на платных тарифах — это условие использования Tilda.
+      // Штатный способ: Настройки сайта → Ещё → «Убрать надпись Made on Tilda».
+      // Если тариф позволяет, но настройка по каким-то причинам не сработала,
+      // поставьте true — плашка будет скрыта стилями.
+      hideTildaLabel: false,
+    };
+
+    if (ES_CONFIG.hideTildaLabel) {
+      var s = document.createElement("style");
+      s.textContent =
+        "#tildacopy,.t-tildalabel,.t-records__copy{display:none !important;}";
+      document.head.appendChild(s);
+    }
+
+    /* Запасной путь: если раскладка почему-то не сработала
+     (нестандартная структура, другой контейнер подвала),
+     дотягиваем подвал отступом до низа окна. */
+    function fallback() {
+      var footer = document.getElementById("t-footer");
+      if (!footer) return;
+
+      footer.style.marginTop = ""; // сначала снимаем свой отступ
+      var gap = window.innerHeight - footer.getBoundingClientRect().bottom;
+      if (gap > 1) footer.style.marginTop = gap + "px";
+    }
+
+    window.addEventListener("load", fallback);
+    window.addEventListener("resize", fallback);
+    setTimeout(fallback, 600); // после отрисовки отложенных блоков Tilda
+    setTimeout(fallback, 1500); // после ленивой подгрузки изображений
+  })();
+</script>

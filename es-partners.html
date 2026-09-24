@@ -1,0 +1,411 @@
+<!-- ================================================================
+     EcoSave — ПАРТНЁРЫ / НАМ ДОВЕРЯЮТ
+     Блок T123. Выше на странице — скрытый блок «Каталог товаров»,
+     настроенный на раздел «Партнёры».
+
+     Заголовок меняется в ES_CONFIG.title:
+       главная          → 'Партнеры'
+       страница «О компании» → 'Нам доверяют'
+     ================================================================ -->
+
+<section class="es-partners" id="esPartners">
+  <h2 class="es-partners__title" id="esPartnersTitle">Партнеры</h2>
+  <div class="es-partners__box">
+    <button
+      class="es-partners__nav es-partners__nav--prev"
+      id="esPtPrev"
+      aria-label="Предыдущие партнёры"
+    >
+      <svg
+        width="16"
+        height="11"
+        viewBox="0 0 18 12"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M6.5 1L1.5 6L6.5 11M2 6H17"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+    <div class="es-partners__track" id="esPtTrack"></div>
+    <button
+      class="es-partners__nav es-partners__nav--next"
+      id="esPtNext"
+      aria-label="Следующие партнёры"
+    >
+      <svg
+        width="16"
+        height="11"
+        viewBox="0 0 18 12"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M11.5 1L16.5 6L11.5 11M16 6H1"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+  </div>
+</section>
+
+<style>
+  .es-partners {
+    --es-green: #3e8e41;
+    --es-green-soft: #cfe3cf;
+    --es-ink: #1a1a1a;
+    --es-box: #f7f7f7;
+    --es-per-view: 5; /* сколько логотипов видно сразу */
+    color: var(--es-ink);
+    font-family: Inter, Sans-Serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    box-sizing: border-box;
+  }
+  .es-partners *,
+  .es-partners *::before,
+  .es-partners *::after {
+    box-sizing: border-box;
+  }
+
+  .es-partners__title {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 24px;
+  }
+
+  .es-partners__box {
+    position: relative;
+    background: var(--es-box);
+    border-radius: 28px;
+    padding: 26px 84px; /* место под стрелки по краям */
+  }
+
+  .es-partners__track {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .es-partners__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .es-partner {
+    flex: 0 0
+      calc((100% - (var(--es-per-view) - 1) * 24px) / var(--es-per-view));
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    scroll-snap-align: start;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+  .es-partner img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .es-partner:hover {
+    opacity: 0.7;
+  }
+
+  .es-partners__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--es-green);
+    color: #fff;
+    transition: background 0.15s ease;
+  }
+  .es-partners__nav:disabled {
+    background: var(--es-green-soft);
+    color: #fff;
+    cursor: default;
+  }
+  .es-partners__nav--prev {
+    left: 22px;
+  }
+  .es-partners__nav--next {
+    right: 22px;
+  }
+  .es-partners__nav[hidden] {
+    display: none;
+  }
+
+  .es-partners__empty {
+    color: #6e6e6e;
+    font-size: 15px;
+    padding: 10px 0;
+  }
+
+  @media (max-width: 1000px) {
+    .es-partners {
+      --es-per-view: 3;
+    }
+    .es-partners__title {
+      font-size: 28px;
+    }
+    .es-partners__box {
+      padding: 22px 74px;
+      border-radius: 24px;
+    }
+  }
+  @media (max-width: 600px) {
+    .es-partners {
+      --es-per-view: 2;
+      padding: 0 16px;
+    }
+    .es-partners__title {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    .es-partners__box {
+      padding: 18px 58px;
+      border-radius: 22px;
+    }
+    .es-partners__track {
+      gap: 16px;
+    }
+    .es-partner {
+      flex: 0 0
+        calc((100% - (var(--es-per-view) - 1) * 16px) / var(--es-per-view));
+      height: 44px;
+    }
+    .es-partners__nav {
+      width: 38px;
+      height: 38px;
+    }
+    .es-partners__nav--prev {
+      left: 12px;
+    }
+    .es-partners__nav--next {
+      right: 12px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .es-partners__track {
+      scroll-behavior: auto;
+    }
+    .es-partners * {
+      transition: none !important;
+    }
+  }
+
+  .es-source-loading {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  .es-source-hidden {
+    display: none !important;
+  }
+</style>
+
+<script>
+  (function () {
+    /* ============================================================
+     ES_CONFIG
+     title   — заголовок секции на этой странице
+     partUid — идентификатор раздела «Партнёры» в каталоге Tilda.
+               Если оставить пустым, берутся товары из блока по recid.
+     recid   — номер блока «Каталог товаров» на ЭТОЙ странице (без «rec»)
+     ============================================================ */
+    var ES_CONFIG = {
+      title: "Партнеры",
+      partUid: "",
+      recid: "3916993703",
+    };
+
+    var title = document.getElementById("esPartnersTitle");
+    var track = document.getElementById("esPtTrack");
+    var prev = document.getElementById("esPtPrev");
+    var next = document.getElementById("esPtNext");
+
+    title.textContent = ES_CONFIG.title;
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[c];
+      });
+    }
+
+    /* ---------- скрываем магазинные блоки ---------- */
+    function sourceBlocks() {
+      return [].filter.call(
+        document.querySelectorAll('[id^="rec"]'),
+        function (el) {
+          return el.querySelector(
+            '.js-product, .t-store, .js-store, .t-store__grid-cont, [class*="t-store__"]',
+          );
+        },
+      );
+    }
+    var sourcesDone = false;
+    (function keepHidden(n) {
+      sourceBlocks().forEach(function (b) {
+        b.classList.add(sourcesDone ? "es-source-hidden" : "es-source-loading");
+      });
+      if (n < 100)
+        setTimeout(function () {
+          keepHidden(n + 1);
+        }, 250);
+    })(0);
+
+    /* ---------- сбор партнёров ---------- */
+    function collect() {
+      var cards;
+      if (ES_CONFIG.partUid) {
+        cards = document.querySelectorAll(
+          '.js-product[data-product-part-uid="' + ES_CONFIG.partUid + '"]',
+        );
+      } else if (ES_CONFIG.recid) {
+        var b = document.getElementById("rec" + ES_CONFIG.recid);
+        cards = b ? b.querySelectorAll(".js-product[data-product-uid]") : [];
+      } else {
+        cards = document.querySelectorAll(".js-product[data-product-uid]");
+      }
+      if (!cards.length) return null;
+
+      return [].map
+        .call(cards, function (c) {
+          var nameEl = c.querySelector(
+            ".js-store-prod-name, .t-store__card__title",
+          );
+          var descrEl = c.querySelector(
+            ".js-store-prod-descr, .t-store__card__descr",
+          );
+          var raw = descrEl ? descrEl.textContent.trim() : "";
+          var url = /^(https?:\/\/|\/)/i.test(raw)
+            ? raw
+            : /^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(raw)
+              ? "https://" + raw
+              : "";
+          return {
+            name: nameEl ? nameEl.textContent.trim() : "",
+            img: c.getAttribute("data-product-img") || "",
+            url: url,
+          };
+        })
+        .filter(function (p) {
+          return p.img;
+        });
+    }
+
+    /* ---------- рендер ---------- */
+    function render(list) {
+      if (!list.length) {
+        track.innerHTML =
+          '<div class="es-partners__empty">Партнёры не загрузились.</div>';
+        prev.hidden = next.hidden = true;
+        return;
+      }
+      track.innerHTML = list
+        .map(function (p) {
+          var inner =
+            '<img src="' +
+            esc(p.img) +
+            '" alt="' +
+            esc(p.name) +
+            '" loading="lazy">';
+          return p.url
+            ? '<a class="es-partner" href="' +
+                esc(p.url) +
+                '" target="_blank" rel="noopener noreferrer"' +
+                ' title="' +
+                esc(p.name) +
+                '">' +
+                inner +
+                "</a>"
+            : '<div class="es-partner" title="' +
+                esc(p.name) +
+                '">' +
+                inner +
+                "</div>";
+        })
+        .join("");
+      initNav();
+    }
+
+    /* ---------- листание ---------- */
+    function initNav() {
+      function step() {
+        var first = track.querySelector(".es-partner");
+        if (!first) return track.clientWidth;
+        var gap =
+          parseFloat(
+            getComputedStyle(track).columnGap || getComputedStyle(track).gap,
+          ) || 0;
+        var per = Math.max(
+          1,
+          Math.round(track.clientWidth / (first.offsetWidth + gap)),
+        );
+        return (first.offsetWidth + gap) * per;
+      }
+      function sync() {
+        var max = track.scrollWidth - track.clientWidth - 1;
+        var fits = max <= 0;
+        prev.disabled = fits || track.scrollLeft <= 0;
+        next.disabled = fits || track.scrollLeft >= max;
+      }
+      prev.onclick = function () {
+        track.scrollBy({ left: -step(), behavior: "smooth" });
+      };
+      next.onclick = function () {
+        track.scrollBy({ left: step(), behavior: "smooth" });
+      };
+      track.addEventListener("scroll", sync, { passive: true });
+      window.addEventListener("resize", sync);
+      sync();
+      setTimeout(sync, 400); // после подгрузки логотипов
+    }
+
+    /* ---------- ожидание загрузки ---------- */
+    var tries = 0;
+    (function wait() {
+      var list = collect();
+      if (list) {
+        sourcesDone = true;
+        render(list);
+        return;
+      }
+      if (++tries > 80) {
+        sourcesDone = true;
+        render([]);
+        console.warn(
+          "EcoSave: партнёры не найдены. Проверьте partUid/recid в ES_CONFIG.",
+        );
+        return;
+      }
+      setTimeout(wait, 250);
+    })();
+  })();
+</script>

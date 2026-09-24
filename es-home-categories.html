@@ -1,0 +1,356 @@
+<!-- ================================================================
+     EcoSave — КАТЕГОРИИ НА ГЛАВНОЙ
+     Вставить в блок T123 на главной странице.
+     Выше должны стоять те же 4 блока «Каталог товаров» (по одному на
+     категорию), что и на странице каталога. Их recid'ы — в ES_CONFIG.
+     Блоки скрываются автоматически.
+     ================================================================ -->
+
+<section class="es-cats" id="esCats">
+  <div class="es-cats__head">
+    <h2 class="es-cats__title">Каталог</h2>
+    <a class="es-cats__all" id="esCatsAll" href="/catalog"
+      >Смотреть все
+      <svg
+        width="20"
+        height="13"
+        viewBox="0 0 20 13"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M13 1L18.5 6.5L13 12M18 6.5H1"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </a>
+  </div>
+  <div class="es-cats__grid" id="esCatsGrid"></div>
+</section>
+
+<style>
+  .es-cats {
+    --es-green: #3e8e41;
+    --es-green-dark: #317434;
+    --es-ink: #1a1a1a;
+    --es-card: #f7f7f7;
+    --es-radius: 16px;
+    color: var(--es-ink);
+    font-family: Inter, Sans-Serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    box-sizing: border-box;
+  }
+  .es-cats *,
+  .es-cats *::before,
+  .es-cats *::after {
+    box-sizing: border-box;
+  }
+
+  .es-cats__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .es-cats__title {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .es-cats__all {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--es-green);
+    text-decoration: none;
+    font-size: 17px;
+  }
+  .es-cats__all:hover {
+    color: var(--es-green-dark);
+  }
+
+  .es-cats__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .es-cat {
+    display: flex;
+    flex-direction: column;
+    background: var(--es-card);
+    border-radius: var(--es-radius);
+    padding: 24px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s ease;
+  }
+  .es-cat:hover {
+    background: #eff2ee;
+  }
+  .es-cat__img {
+    height: 190px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .es-cat__img img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .es-cat__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+  }
+  .es-cat__name {
+    font-size: 17px;
+    line-height: 1.3;
+  }
+  .es-cat__foot svg {
+    flex: none;
+  }
+  .es-cats__empty {
+    color: #6e6e6e;
+    font-size: 15px;
+    padding: 20px 0;
+  }
+
+  @media (max-width: 1000px) {
+    .es-cats__grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .es-cats__title {
+      font-size: 26px;
+    }
+  }
+  @media (max-width: 600px) {
+    .es-cats {
+      padding: 0 16px;
+    }
+    .es-cats__title {
+      font-size: 20px;
+    }
+    .es-cats__all {
+      font-size: 15px;
+      gap: 8px;
+    }
+    .es-cats__grid {
+      gap: 12px;
+    }
+    .es-cat {
+      padding: 14px;
+    }
+    .es-cat__img {
+      height: 120px;
+      margin-bottom: 14px;
+    }
+    .es-cat__name {
+      font-size: 14px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .es-cats * {
+      transition: none !important;
+    }
+  }
+
+  .es-source-loading {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  .es-source-hidden {
+    display: none !important;
+  }
+</style>
+
+<script>
+  (function () {
+    /* ============================================================
+     ES_CONFIG
+     partUid — идентификатор раздела каталога Tilda. Одинаков на всех
+               страницах. Как узнать — см. подсказку в консоли.
+     recid   — запасной вариант: номер блока «Каталог товаров» на ЭТОЙ
+               странице (без «rec»). Используется, если partUid пуст.
+     img     — необязательно: свой адрес картинки. Если пусто, берётся
+               фото первого товара категории.
+     ============================================================ */
+    var ES_CONFIG = {
+      catalogUrl: "/catalog",
+      categories: [
+        { name: "Стимуляторы роста", partUid: "", recid: "3910328403", img: "" },
+        { name: "Биопрепараты", partUid: "", recid: "3910334003", img: "" },
+        { name: "Удобрения", partUid: "", recid: "3910337703", img: "" },
+        { name: "Адъюванты", partUid: "", recid: "3910339103", img: "" },
+      ],
+    };
+
+    var ARROW =
+      '<svg width="22" height="14" viewBox="0 0 20 13" fill="none" aria-hidden="true">' +
+      '<path d="M13 1L18.5 6.5L13 12M18 6.5H1" stroke="currentColor" stroke-width="1.7" ' +
+      'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[c];
+      });
+    }
+
+    document
+      .getElementById("esCatsAll")
+      .setAttribute("href", ES_CONFIG.catalogUrl);
+
+    /* ---------- блоки-источники: скрываем все магазинные ---------- */
+    function sourceBlocks() {
+      return [].filter.call(
+        document.querySelectorAll('[id^="rec"]'),
+        function (el) {
+          return el.querySelector(
+            '.js-product, .t-store, .js-store, .t-store__grid-cont, [class*="t-store__"]',
+          );
+        },
+      );
+    }
+
+    var sourcesDone = false;
+    (function keepHidden(n) {
+      sourceBlocks().forEach(function (b) {
+        b.classList.add(sourcesDone ? "es-source-hidden" : "es-source-loading");
+      });
+      if (n < 100)
+        setTimeout(function () {
+          keepHidden(n + 1);
+        }, 250);
+    })(0);
+
+    /* ---------- картинка категории = фото первого товара ---------- */
+    function imageOf(c) {
+      var card = null;
+      if (c.partUid) {
+        card = document.querySelector(
+          '.js-product[data-product-part-uid="' + c.partUid + '"]',
+        );
+        // товары ещё могут грузиться — отличаем «нет карточек вообще» от «нет этой»
+        return card
+          ? card.getAttribute("data-product-img") || ""
+          : document.querySelector(".js-product")
+            ? ""
+            : null;
+      }
+      if (c.recid) {
+        var b = document.getElementById("rec" + c.recid);
+        if (!b) return null;
+        card = b.querySelector(".js-product[data-product-uid]");
+        return card ? card.getAttribute("data-product-img") || "" : null;
+      }
+      return null;
+    }
+
+    /* ---------- подсказка: какие разделы есть на странице ---------- */
+    function hint() {
+      var seen = {};
+      document
+        .querySelectorAll(".js-product[data-product-part-uid]")
+        .forEach(function (c) {
+          var k = c.getAttribute("data-product-part-uid");
+          if (seen[k]) return;
+          var n = c.querySelector(".js-store-prod-name");
+          seen[k] = n ? n.textContent.trim() : "";
+        });
+      console.group("EcoSave: разделы каталога, найденные на странице");
+      console.info("Впишите partUid в ES_CONFIG нужной категории:");
+      Object.keys(seen).forEach(function (k) {
+        console.info("partUid: " + k + "   первый товар: " + seen[k]);
+      });
+      if (!Object.keys(seen).length)
+        console.warn("Карточек товаров на странице нет вообще.");
+      console.groupEnd();
+    }
+
+    function render(images) {
+      var grid = document.getElementById("esCatsGrid");
+      var html = ES_CONFIG.categories
+        .map(function (c, i) {
+          var img = c.img || images[i] || "";
+          var href =
+            ES_CONFIG.catalogUrl + "?cat=" + encodeURIComponent(c.name);
+          return (
+            '<a class="es-cat" href="' +
+            esc(href) +
+            '">' +
+            '<div class="es-cat__img">' +
+            (img
+              ? '<img src="' +
+                esc(img) +
+                '" alt="' +
+                esc(c.name) +
+                '" loading="lazy">'
+              : "") +
+            "</div>" +
+            '<div class="es-cat__foot"><span class="es-cat__name">' +
+            esc(c.name) +
+            "</span>" +
+            ARROW +
+            "</div></a>"
+          );
+        })
+        .join("");
+      grid.innerHTML =
+        html || '<div class="es-cats__empty">Категории не загрузились.</div>';
+    }
+
+    var tries = 0;
+    (function wait() {
+      var images = ES_CONFIG.categories.map(function (c) {
+        return c.img ? c.img : imageOf(c);
+      });
+      var ready = images.every(function (v) {
+        return v !== null;
+      });
+      if (ready) {
+        sourcesDone = true;
+        render(images);
+        hint();
+        return;
+      }
+      if (++tries > 40) {
+        // ~10 с
+        sourcesDone = true;
+        render(
+          images.map(function (v) {
+            return v || "";
+          }),
+        );
+        console.warn("EcoSave: не для всех категорий нашлось фото товара.");
+        hint();
+        return;
+      }
+      setTimeout(wait, 250);
+    })();
+
+    // плитки рисуем сразу, не дожидаясь картинок
+    render(
+      ES_CONFIG.categories.map(function (c) {
+        return c.img || "";
+      }),
+    );
+  })();
+</script>

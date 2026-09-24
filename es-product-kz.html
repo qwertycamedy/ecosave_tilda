@@ -1,0 +1,1830 @@
+<!-- ================================================================
+     EcoSave — СТРАНИЦА ТОВАРА  (версия 6, КАЗАХСКАЯ)
+     Версии RU / EN / KZ отличаются только блоком ES_TEXT в начале скрипта.
+     Вставить в блок T123 на странице товара.
+
+     Откуда что берётся (всё — из карточки «Каталога товаров»):
+       ЗАГОЛОВОК    → название
+       ОПИСАНИЕ     → короткий текст на первом экране (2 строки)
+       ТЕКСТ        → обе вкладки, HTML — так же, как тело статьи блога:
+                        всё внутри <div class="es-tab-specs">…</div> — «Характеристики»,
+                        всё остальное — «Описание»
+       ИЗОБРАЖЕНИЯ  → слайдер; фото, вставленные в текст как <img src="фото 2">,
+                      из слайдера убираются
+       Поле Tilda «Характеристики» используется, только если в тексте
+       нет блока es-tab-specs (для старых карточек).
+
+     HTML поля ТЕКСТ:
+       <h2> <h3> <p> <b> <i> <a> <table> <img>   — как в статье
+       <ul> — список с галочками      <ul class="es-plus"> — с плюсами
+       <ol> — пронумерованные шаги    <blockquote> — примечание в рамке
+       <ul class="es-cards"><li data-icon="корни"><b>Заголовок</b> пояснение</li></ul>
+                                      — карточки преимуществ
+       <ul class="es-specs"><li><b>Упаковка</b> флакон 1 л</li></ul>
+                                      — список характеристик «название — значение»
+       <p>https://youtu.be/…</p>      — видео YouTube
+     ================================================================ -->
+
+<div class="es-prod" id="esProd">
+  <a class="es-back" id="esBack" href="/catalog">
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true">
+      <path d="M6.5 1L1.5 6L6.5 11M2 6H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span id="esBackText">Артқа</span>
+  </a>
+  <div class="es-prod__body" id="esProdBody">
+    <div class="es-empty" id="esLoading">Тауар жүктелуде…</div>
+  </div>
+</div>
+
+<style>
+  .es-prod {
+    --es-green: #4d9033;
+    --es-green-dark: #447f2d;
+    --es-lime: #9bc95a;
+    --es-tint: #eef5ea;
+    --es-ink: #1a1a1a;
+    --es-text: #2a2a2a;
+    --es-muted: #6e6e6e;
+    --es-card: #f7f7f7;
+    --es-line: #e4e7e3;
+    --es-radius: 14px;
+    color: var(--es-ink);
+    font-family: Inter, Sans-Serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+  .es-prod *,
+  .es-prod *::before,
+  .es-prod *::after {
+    box-sizing: border-box;
+  }
+  .es-prod :focus-visible {
+    outline: 2px solid var(--es-green);
+    outline-offset: 3px;
+  }
+  .es-empty {
+    color: var(--es-muted);
+    padding: 24px 0;
+  }
+
+  .es-popup-title {
+    font-family: Inter, Sans-Serif;
+    font-weight: 600;
+    font-size: 22px;
+  }
+
+  .es-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--es-ink);
+    text-decoration: none;
+    font-size: 15px;
+    padding: 22px 0;
+  }
+  .es-back:hover {
+    color: var(--es-green);
+  }
+
+  /* ---------- верх ---------- */
+  .es-top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+    margin-bottom: 56px;
+  }
+
+  /* ---------- слайдер ---------- */
+  .es-slider {
+    --es-nav: 56px;
+    --es-nav-off: #c9dcc2;
+    background: var(--es-card);
+    border-radius: 16px;
+    padding: 40px calc(var(--es-nav) + 40px) 30px;
+    position: relative;
+  }
+  .es-slider__viewport {
+    overflow: hidden;
+    touch-action: pan-y;
+    outline: none;
+    border-radius: 8px;
+  }
+  .es-slider__viewport:focus-visible {
+    box-shadow: 0 0 0 2px var(--es-green);
+  }
+  .es-slider__track {
+    display: flex;
+    transition: transform 0.35s ease;
+    will-change: transform;
+  }
+  .es-slider__slide {
+    flex: 0 0 100%;
+    height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .es-slider__slide img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    -webkit-user-drag: none;
+    pointer-events: none;
+  }
+  .es-slider__nav {
+    position: absolute;
+    top: calc(40px + 190px);
+    transform: translateY(-50%);
+    width: var(--es-nav);
+    height: var(--es-nav);
+    border-radius: 50%;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--es-green);
+    color: #fff;
+    transition: background-color 0.15s ease;
+  }
+  .es-slider__nav:hover:not(:disabled) {
+    background: var(--es-green-dark);
+  }
+  .es-slider__nav:disabled {
+    background: var(--es-nav-off);
+    cursor: default;
+  }
+  .es-slider__nav--prev {
+    left: 24px;
+  }
+  .es-slider__nav--next {
+    right: 24px;
+  }
+  .es-slider__bar {
+    width: 72%;
+    max-width: 480px;
+    height: 5px;
+    margin: 30px auto 0;
+    border-radius: 3px;
+    background: #d6e5d0;
+    overflow: hidden;
+  }
+  .es-slider__bar span {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--es-green);
+    transition: transform 0.35s ease;
+  }
+  /* одно фото — без стрелок и полосы */
+  .es-slider--single {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+  .es-slider--single .es-slider__nav,
+  .es-slider--single .es-slider__bar {
+    display: none;
+  }
+
+  .es-title {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 20px;
+  }
+  .es-lead[hidden] {
+    display: none;
+  }
+  .es-lead {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #3a3a3a;
+    margin: 0 0 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .es-anchor {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--es-green);
+    text-decoration: none;
+    font-size: 15px;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .es-anchor:hover {
+    color: var(--es-green-dark);
+  }
+  .es-anchor-row {
+    margin: 0 0 4px;
+  }
+  .es-bullets {
+    margin: 14px 0 10px;
+    padding-left: 20px;
+  }
+  .es-bullets li {
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  .es-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 36px;
+    background: var(--es-green);
+    color: #fff;
+    border: 0;
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 17px 28px;
+    font-size: 17px;
+    font-weight: 500;
+    margin-top: 26px;
+    font-family: inherit;
+    text-decoration: none;
+  }
+  .es-cta:hover {
+    background: var(--es-green-dark);
+  }
+
+  /* ---------- вкладки ---------- */
+  .es-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--es-green);
+    scroll-margin-top: 90px;
+  }
+  .es-tab {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 500;
+    padding: 15px 28px;
+    border-radius: 10px 10px 0 0;
+    color: var(--es-green);
+  }
+  .es-tab[aria-selected="true"] {
+    background: var(--es-green);
+    color: #fff;
+  }
+  .es-panel {
+    padding-top: 32px;
+  }
+  .es-panel[hidden] {
+    display: none;
+  }
+
+  /* ---------- характеристики: список ---------- */
+  .es-specs {
+    background: var(--es-card);
+    border-radius: var(--es-radius);
+    padding: 30px 60px;
+    margin: 0;
+  }
+  .es-specs__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 9px 0;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .es-specs__row dt {
+    flex: none;
+  }
+  .es-specs__row dd {
+    margin: 0;
+    text-align: right;
+    color: #3a3a3a;
+    max-width: 62%;
+  }
+  .es-specs__row--solo dd {
+    max-width: none;
+  }
+  .es-content .es-specs {
+    margin: 0 0 36px;
+  }
+  /* строка без названия — на всю ширину */
+  .es-specs__row--solo dd {
+    text-align: left;
+  }
+
+  /* ---------- таблица (и в тексте, и из характеристики «Таблица») ---------- */
+  .es-table__scroll {
+    overflow-x: auto;
+    margin: 26px 0;
+    border-radius: 10px;
+    border: 1px solid var(--es-line);
+  }
+  .es-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 560px;
+  }
+  .es-table th {
+    background: #e9efe7;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    vertical-align: bottom;
+    padding: 13px 16px;
+  }
+  .es-table td {
+    padding: 13px 16px;
+    font-size: 15px;
+    line-height: 1.5;
+    vertical-align: top;
+    border-top: 1px solid var(--es-line);
+  }
+  .es-table td + td {
+    border-left: 1px solid var(--es-line);
+  }
+  .es-table td:first-child {
+    font-weight: 600;
+  }
+  .es-table td[rowspan] {
+    vertical-align: middle;
+    border-bottom: 1px solid var(--es-line);
+  }
+
+  /* ---------- карточки преимуществ ---------- */
+  .es-feats {
+    --cols: 5;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    gap: 20px;
+    margin: 0 0 40px;
+  }
+  .es-feat {
+    background: var(--es-card);
+    border-radius: var(--es-radius);
+    padding: 22px 20px;
+  }
+  .es-feat__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #e4efe3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    color: var(--es-green);
+  }
+  .es-feat__title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+  .es-feat__text {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--es-muted);
+  }
+
+  /* ---------- содержимое из поля «Текст» ---------- */
+  .es-content {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--es-text);
+  }
+  .es-content > :first-child {
+    margin-top: 0;
+  }
+  .es-content > :last-child {
+    margin-bottom: 0;
+  }
+  .es-content p,
+  .es-content ul,
+  .es-content h2,
+  .es-content h3,
+  .es-content h4,
+  .es-content blockquote {
+    max-width: 780px;
+  }
+  .es-content p {
+    margin: 0 0 14px;
+  }
+  .es-content a {
+    color: var(--es-green);
+  }
+  .es-content h2 {
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 600;
+    color: var(--es-ink);
+    margin: 44px 0 16px;
+  }
+  .es-content h3 {
+    font-size: 18px;
+    line-height: 1.35;
+    font-weight: 600;
+    color: var(--es-ink);
+    margin: 30px 0 12px;
+  }
+  .es-content h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 24px 0 8px;
+  }
+  .es-content h2 + .es-feats,
+  .es-content h3 + .es-feats {
+    margin-top: 6px;
+  }
+
+  /* списки: «-» — галочки, «+» — плюсы */
+  .es-content ul {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+  }
+  .es-content ul li {
+    position: relative;
+    padding-left: 32px;
+    margin-bottom: 10px;
+  }
+  .es-content ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 3px;
+    width: 20px;
+    height: 20px;
+    background: no-repeat center / 20px 20px
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M4 10.5l4 4 8-9' stroke='%234d9033' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  .es-content ul.es-plus li::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M10 3.5v13M3.5 10h13' stroke='%234d9033' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+
+  /* нумерованный список — шаги */
+  .es-content ol {
+    list-style: none;
+    counter-reset: es-step;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin: 6px 0 24px;
+    padding: 0;
+  }
+  .es-content ol li {
+    counter-increment: es-step;
+    background: var(--es-card);
+    border-radius: var(--es-radius);
+    padding: 20px;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .es-content ol li::before {
+    content: counter(es-step);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--es-green);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 14px;
+  }
+
+  .es-content blockquote {
+    background: var(--es-tint);
+    border-left: 3px solid var(--es-green);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    margin: 0 0 20px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .es-content blockquote > :last-child {
+    margin-bottom: 0;
+  }
+  .es-content blockquote p {
+    max-width: none;
+  }
+
+  .es-figure {
+    margin: 28px 0;
+  }
+  .es-figure img,
+  .es-content img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--es-radius);
+  }
+  .es-figure figcaption {
+    font-size: 14px;
+    color: var(--es-muted);
+    margin-top: 10px;
+  }
+  /* ---------- видео YouTube ---------- */
+  .es-video {
+    position: relative;
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16/9;
+    margin: 28px 0;
+    border-radius: var(--es-radius);
+    overflow: hidden;
+    background: #e7eae6;
+    cursor: pointer;
+    border: 0;
+    padding: 0;
+    display: block;
+  }
+  .es-content .es-video img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    border-radius: 0;
+  }
+  .es-video iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .es-video__play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--es-green);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+    transition: transform 0.15s ease;
+  }
+  .es-video:hover .es-video__play {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+
+  .es-content hr {
+    border: 0;
+    border-top: 1px solid var(--es-line);
+    margin: 32px 0;
+  }
+
+  /* ---------- адаптив ---------- */
+  @media (max-width: 900px) {
+    .es-top {
+      grid-template-columns: 1fr;
+      gap: 26px;
+      margin-bottom: 34px;
+    }
+    .es-feats {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+  }
+  @media (max-width: 760px) {
+    .es-prod {
+      padding: 0 16px;
+    }
+    .es-popup-title {
+      font-size: 18px;
+    }
+    .es-back {
+      padding: 16px 0;
+      font-size: 14px;
+    }
+    .es-slider {
+      --es-nav: 40px;
+      padding: 20px calc(var(--es-nav) + 20px) 20px;
+    }
+    .es-slider--single {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    .es-slider__slide {
+      height: 260px;
+    }
+    .es-slider__nav {
+      top: calc(20px + 130px);
+    }
+    .es-slider__nav--prev {
+      left: 12px;
+    }
+    .es-slider__nav--next {
+      right: 12px;
+    }
+    .es-slider__nav svg {
+      width: 17px;
+    }
+    .es-slider__bar {
+      margin-top: 20px;
+    }
+    .es-title {
+      font-size: 26px;
+      margin-bottom: 14px;
+    }
+    .es-lead,
+    .es-bullets li {
+      font-size: 14px;
+    }
+    .es-cta {
+      width: 100%;
+      justify-content: space-between;
+      padding: 15px 20px;
+      font-size: 16px;
+    }
+    .es-tab {
+      padding: 11px 16px;
+      font-size: 15px;
+    }
+    .es-specs {
+      padding: 18px;
+    }
+    .es-specs__row {
+      font-size: 13px;
+      gap: 18px;
+    }
+    .es-content {
+      font-size: 14px;
+    }
+    .es-content h2 {
+      font-size: 19px;
+      margin-top: 34px;
+    }
+    .es-content h3 {
+      font-size: 16px;
+    }
+    .es-content ol li,
+    .es-content blockquote {
+      font-size: 14px;
+    }
+    .es-table td {
+      font-size: 14px;
+    }
+    .es-video__play {
+      width: 62px;
+      height: 62px;
+    }
+  }
+  @media (max-width: 480px) {
+    .es-feats {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .es-feat {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      column-gap: 14px;
+      align-items: start;
+      padding: 16px;
+    }
+    .es-feat__icon {
+      grid-row: span 2;
+      width: 40px;
+      height: 40px;
+      margin: 0;
+    }
+    .es-feat__title {
+      margin: 2px 0 4px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .es-prod * {
+      transition: none !important;
+    }
+  }
+
+  .es-source-loading {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  .es-source-hidden {
+    display: none !important;
+  }
+</style>
+
+<script>
+  (function () {
+    // ---- тексты интерфейса: единственное, что отличается в версиях RU / EN / KZ ----
+    var ES_TEXT = {
+      back: "Артқа",
+      loading: "Тауар жүктелуде…",
+      tabDescr: "Сипаттама",
+      tabSpecs: "Техникалық деректер",
+      cta: "Өтінім қалдыру",
+      gallery: "Тауар суреттері",
+      carousel: "карусель",
+      slide: "слайд",
+      slideOf: "{i} / {n}",
+      prev: "Алдыңғы сурет",
+      next: "Келесі сурет",
+      playVideo: "Бейнені ойнату",
+      video: "Бейне",
+      backToCatalog: "Каталогқа оралу",
+      errNoProduct: "Тауар көрсетілмеген.",
+      errNotFound: "Тауар каталогтан табылмады.",
+      errParse: "Тауар деректерін оқу мүмкін болмады, толығырақ браузер консолінде.",
+      errLoad: "Тауарды жүктеу мүмкін болмады.",
+    };
+
+    var ES_CONFIG = {
+      catalogUrl: "/catalog",
+      formPopupUrl: "#order", // цель кнопки «Оставить заявку»
+      productFieldName: "product", // скрытое поле формы, куда пишется название товара
+      popupTitleSelector: ".es-popup-title", // текст-элемент в попапе под заголовок товара
+      // пункты под кратким описанием:
+      //  "auto"  — заголовки первых трёх карточек, если карточек нет — характеристики
+      //  "feats" — только карточки, "specs" — только характеристики, "none" — не показывать
+      bullets: "auto",
+      bulletsCount: 3,
+      longValue: 60, // характеристики длиннее не идут в пункты на первом экране
+      // фото, вставленные в «Текст» через <img src="фото 2">, показывать и в слайдере
+      textPhotosInSlider: false,
+    };
+
+    var body = document.getElementById("esProdBody");
+    var params = new URLSearchParams(location.search);
+    var uid = params.get("uid") || "";
+    var path = params.get("p") || "";
+
+    document.getElementById("esBack").setAttribute("href", ES_CONFIG.catalogUrl);
+    document.getElementById("esBackText").textContent = ES_TEXT.back;
+    var loadingEl = document.getElementById("esLoading");
+    if (loadingEl) loadingEl.textContent = ES_TEXT.loading;
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+    function norm(s) {
+      return String(s || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+    }
+    function cap(s) {
+      return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+    }
+
+    // инертный документ: разбор HTML в нём не грузит картинки и не выполняет скрипты
+    var idoc = document.implementation.createHTMLDocument("");
+    function inert(html) {
+      var d = idoc.createElement("div");
+      d.innerHTML = html;
+      return d;
+    }
+    function plain(html) {
+      return norm(inert(html).textContent);
+    }
+    // текст узла с переводами строк на месте <br> и блоков
+    function textWithBreaks(el) {
+      var c = el.cloneNode(true);
+      [].forEach.call(c.querySelectorAll("br"), function (b) {
+        b.parentNode.replaceChild(idoc.createTextNode("\n"), b);
+      });
+      [].forEach.call(c.querySelectorAll("p,div,li,h1,h2,h3,h4,h5,h6,tr"), function (b) {
+        b.appendChild(idoc.createTextNode("\n"));
+      });
+      return c.textContent.replace(/\u00a0/g, " ");
+    }
+
+    /* ---------- иконки карточек: * {корни} Заголовок | текст ---------- */
+    var ICONS = {
+      лист: '<path d="M19 5c0 8-5 13-10.5 13C6 18 5 16.5 5 14.5 5 9 10.5 5 19 5z"/><path d="M5 19l7-7"/>',
+      росток: '<path d="M12 20v-8"/><path d="M12 12c0-3.5-2.5-5.5-6-5.5 0 3.5 2.5 5.5 6 5.5z"/><path d="M12 10c0-3.5 2.5-5.5 6-5.5 0 3.5-2.5 5.5-6 5.5z"/><path d="M7 20h10"/>',
+      корни: '<path d="M12 3v6"/><path d="M4 9h16"/><path d="M12 9v11"/><path d="M12 13l-4 3-2 3"/><path d="M12 13l4 3 2 3"/><path d="M12 17l-2 3"/>',
+      щит: '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/>',
+      рост: '<path d="M4 17l5-5 4 3 7-7"/><path d="M15 8h5v5"/>',
+      колос: '<path d="M12 21V7"/><path d="M12 7c-1.8-.8-3-2.6-3-4.5 1.8 0 3 1.8 3 4.5z"/><path d="M12 7c1.8-.8 3-2.6 3-4.5-1.8 0-3 1.8-3 4.5z"/><path d="M12 11.5c-2.4-.4-4-2-4-4 2 0 4 1.6 4 4z"/><path d="M12 11.5c2.4-.4 4-2 4-4-2 0-4 1.6-4 4z"/><path d="M12 16c-2.4-.4-4-2-4-4 2 0 4 1.6 4 4z"/><path d="M12 16c2.4-.4 4-2 4-4-2 0-4 1.6-4 4z"/>',
+      почва: '<path d="M3 8c3-2 6 2 9 0s6 2 9 0"/><path d="M3 13h18"/><path d="M3 18h18"/><path d="M7 15.5h.01M13 15.5h.01M17 10.5h.01M9 10.5h.01"/>',
+      капля: '<path d="M12 3c3.5 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 2.5-6.5 6-11z"/><path d="M9 14.5a3 3 0 0 0 3 3"/>',
+      молекула: '<circle cx="6" cy="7" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="12" cy="17.5" r="2.5"/><path d="M8.5 7h7M7.3 9.2l3.4 6M16.7 9.2l-3.4 6"/>',
+      микробы: '<circle cx="12" cy="12" r="5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><path d="M10.5 11h.01M13.5 13.5h.01"/>',
+      цикл: '<path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4"/><path d="M6 21v-4h4"/>',
+      ph: '<path d="M4.5 9v11"/><path d="M4.5 9h2.8a2.6 2.6 0 0 1 0 5.2H4.5"/><path d="M13 5v10M19.5 5v10M13 10h6.5"/>',
+      солнце: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+    };
+    var ICON_ALIAS = {
+      листок: "лист", эко: "лист", безопасность: "лист",
+      всходы: "росток", прорастание: "росток", семена: "росток",
+      корень: "корни",
+      защита: "щит", стресс: "щит", иммунитет: "щит",
+      график: "рост", урожайность: "рост", эффективность: "рост",
+      урожай: "колос", зерно: "колос",
+      вода: "капля", влага: "капля",
+      азот: "молекула", аминокислоты: "молекула", питание: "молекула",
+      бактерии: "микробы", грибы: "микробы", микрофлора: "микробы",
+      разложение: "цикл", деструкция: "цикл",
+      погода: "солнце", климат: "солнце",
+      кислотность: "ph", "рн": "ph",
+    };
+    function icon(name) {
+      var k = String(name || "").toLowerCase().replace(/ё/g, "е").trim();
+      k = ICONS[k] ? k : ICON_ALIAS[k] || "лист";
+      return (
+        '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        ICONS[k] +
+        "</svg>"
+      );
+    }
+
+    var NAV_PREV =
+      '<svg width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden="true"><path d="M8 1L1.5 8L8 15M2 8H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    var NAV_NEXT =
+      '<svg width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden="true"><path d="M14 1L20.5 8L14 15M20 8H1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    var ARROW =
+      '<svg width="20" height="13" viewBox="0 0 20 13" fill="none" aria-hidden="true">' +
+      '<path d="M13 1L18.5 6.5L13 12M18 6.5H1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    function fail(msg) {
+      body.innerHTML =
+        '<div class="es-empty">' + esc(msg) + ' <a href="' + esc(ES_CONFIG.catalogUrl) + '">' + esc(ES_TEXT.backToCatalog) + "</a></div>";
+    }
+
+    /* ============================================================
+     1. Определяем адрес системной страницы товара
+     ============================================================ */
+    function sourceBlocks() {
+      return [].filter.call(document.querySelectorAll('[id^="rec"]'), function (el) {
+        return el.querySelector('.js-product, .t-store, .js-store, .t-store__grid-cont, [class*="t-store__"]');
+      });
+    }
+
+    var sourcesDone = false;
+    (function keepHidden(n) {
+      sourceBlocks().forEach(function (b) {
+        b.classList.add(sourcesDone ? "es-source-hidden" : "es-source-loading");
+      });
+      if (n < 100)
+        setTimeout(function () {
+          keepHidden(n + 1);
+        }, 250);
+    })(0);
+
+    function hideSources(done) {
+      if (done) sourcesDone = true;
+      sourceBlocks().forEach(function (b) {
+        b.classList.add(done ? "es-source-hidden" : "es-source-loading");
+      });
+    }
+
+    // карточка этого товара в скрытом блоке каталога на странице
+    function samePath(a, b) {
+      function n(x) {
+        try {
+          x = decodeURIComponent(new URL(x, location.origin).pathname);
+        } catch (e) {}
+        return String(x || "").replace(/\/+$/, "");
+      }
+      return !!a && !!b && n(a) === n(b);
+    }
+    function findCardLead() {
+      return new Promise(function (resolve) {
+        var tries = 0;
+        (function wait() {
+          var cards = document.querySelectorAll(".js-product");
+          for (var i = 0; i < cards.length; i++) {
+            var c = cards[i];
+            var hit =
+              (uid && c.getAttribute("data-product-uid") === uid) ||
+              (path && samePath(c.getAttribute("data-product-url"), path));
+            if (!hit) continue;
+            var e = c.querySelector(".js-store-prod-descr, .t-store__card__descr");
+            return resolve(e ? norm(e.textContent) : "");
+          }
+          // без блоков каталога на странице ждать нечего
+          if (++tries < 40 && (sourceBlocks().length || tries < 8)) return setTimeout(wait, 250);
+          resolve("");
+        })();
+      });
+    }
+    function leadOk(s, textPlain) {
+      s = norm(s);
+      return s && s.indexOf("<") === -1 && s.length <= 600 && s !== textPlain ? s : "";
+    }
+
+    function resolvePath() {
+      if (path) return Promise.resolve(path);
+      return new Promise(function (resolve) {
+        var tries = 0;
+        (function wait() {
+          var cards = document.querySelectorAll(".js-product[data-product-uid]");
+          for (var i = 0; i < cards.length; i++) {
+            var c = cards[i];
+            if (c.getAttribute("data-product-uid") !== uid) continue;
+            var u = c.getAttribute("data-product-url") || "";
+            hideSources(true);
+            try {
+              return resolve(u ? new URL(u, location.origin).pathname : "");
+            } catch (e) {
+              return resolve("");
+            }
+          }
+          if (++tries < 80) return setTimeout(wait, 250);
+          console.warn("EcoSave: товар " + uid + " не найден. Блоков-источников: " + sourceBlocks().length + ", карточек: " + cards.length);
+          hideSources(true);
+          resolve("");
+        })();
+      });
+    }
+
+    /* ============================================================
+     2. Разбор системной страницы товара
+     ============================================================ */
+    function parseDoc(doc) {
+      function text(sel) {
+        var e = doc.querySelector(sel);
+        return e ? norm(e.textContent) : "";
+      }
+
+      // ---- галерея
+      var images = [];
+      function fromStyle(v) {
+        var m = /url\(\s*["']?(.*?)["']?\s*\)/.exec(v || "");
+        return m ? m[1] : "";
+      }
+      function push(src) {
+        if (!src) return;
+        src = src.trim();
+        if (!/^(https?:)?\/\//.test(src) && src.charAt(0) !== "/") return;
+        src = src.replace(/\/-\/resize[^/]*\/[^/]*\//, "/");
+        if (images.indexOf(src) === -1) images.push(src);
+      }
+      function fromEl(el) {
+        var inner = el.querySelector && el.querySelector("[data-original]");
+        return (
+          el.getAttribute("data-original") ||
+          el.getAttribute("data-img-zoom-url") ||
+          (inner && inner.getAttribute("data-original")) ||
+          el.getAttribute("src") ||
+          el.getAttribute("content") ||
+          fromStyle(el.getAttribute("style"))
+        );
+      }
+      // ищем только внутри карточки товара, чтобы не захватить картинки шапки и подвала
+      var scope =
+        doc.querySelector(
+          ".t-store__prod-snippet__container, .t-store__product-snippet, .js-store-product, .t-store__prod-popup__container",
+        ) || doc;
+      [
+        '[bgimgfield^="st_gallery__"], [bgimgfield^="gi_img__"]',
+        ".t-slds__item:not(.t-slds__item_dummy) .js-product-img, .t-slds__item:not(.t-slds__item_dummy) .t-slds__bgimg, .t-slds__item:not(.t-slds__item_dummy) .t-slds__img",
+        '[itemtype*="ImageObject"] meta[itemprop="image"], .t-slds [data-img-zoom-url]',
+        ".js-product-img, [data-original]",
+      ].some(function (sel) {
+        scope.querySelectorAll(sel).forEach(function (el) {
+          if (el.closest && el.closest(".t-slds__thumbsbullet-wrapper, .t-slds__thumbs")) return;
+          push(fromEl(el));
+        });
+        return images.length > 0;
+      });
+
+      // ---- характеристики: построчно «Название: Значение»
+      var specs = [];
+      var box = doc.querySelector(".js-store-prod-all-charcs");
+      if (box) {
+        textWithBreaks(box)
+          .split(/\r?\n/)
+          .forEach(function (line) {
+            var i = line.indexOf(":");
+            if (i > 0) specs.push({ k: norm(line.slice(0, i)), v: norm(line.slice(i + 1)) });
+          });
+      }
+      if (!specs.length) {
+        doc.querySelectorAll('.js-store-prod-charcs, [class*="charcs__item"], .t-store__prod-popup__opts-item').forEach(function (el) {
+          var parts = el.textContent.split(":");
+          if (parts.length > 1) specs.push({ k: norm(parts[0]), v: norm(parts.slice(1).join(":")) });
+        });
+      }
+
+      var lead = text('.js-store-prod-descr, [field^="st_descr__"]');
+      // запасной источник — разметка Product для поисковиков, если она есть
+      var ldLead = "";
+      doc.querySelectorAll('script[type="application/ld+json"]').forEach(function (sc) {
+        if (ldLead) return;
+        try {
+          [].concat(JSON.parse(sc.textContent)).forEach(function (o) {
+            if (!ldLead && o && /product/i.test(o["@type"]) && typeof o.description === "string") ldLead = norm(o.description);
+          });
+        } catch (e) {}
+      });
+
+      // ---- поле «Текст».
+      // Tilda кладёт в один контейнер и текст, и характеристики, а при пустом
+      // «Тексте» подставляет туда «Описание» — отсекаем и то и другое.
+      var textHtml = "";
+      var textEl =
+        doc.querySelector(".js-store-prod-all-text") ||
+        doc.querySelector('.js-store-prod-text, [field^="st_text__"], .t-store__prod-popup__text');
+      if (textEl) {
+        var clone = textEl.cloneNode(true);
+        clone
+          .querySelectorAll(
+            ".js-store-prod-all-charcs, .js-store-prod-charcs, .js-store-prod-dimensions, .js-store-prod-weight, .js-store-prod-brand, .js-store-prod-sku",
+          )
+          .forEach(function (n) {
+            n.remove();
+          });
+        var t = norm(clone.textContent);
+        if (t && t !== lead) textHtml = clone.innerHTML;
+      }
+
+      return {
+        title: text(".js-store-prod-name, .js-product-name, .t-store__prod-popup__name, h1"),
+        lead: lead,
+        ldLead: ldLead,
+        images: images,
+        specs: specs,
+        textHtml: textHtml,
+      };
+    }
+
+    function diagnose(doc) {
+      console.group("EcoSave: данные товара не разобрались");
+      [
+        ["название", ".js-store-prod-name, .js-product-name"],
+        ["краткое описание", '.js-store-prod-descr, [field^="st_descr__"]'],
+        ["полное описание", '.js-store-prod-all-text, .js-store-prod-text, [field^="st_text__"]'],
+        ["характеристики", ".js-store-prod-all-charcs"],
+        ["галерея", '[bgimgfield^="st_gallery__"]'],
+      ].forEach(function (p) {
+        console.warn(p[0] + ": найдено элементов — " + doc.querySelectorAll(p[1]).length);
+      });
+      console.groupEnd();
+    }
+
+    /* ============================================================
+     3. Очистка HTML из поля «Текст»
+     ============================================================ */
+    var ALLOWED = {
+      H2: 1, H3: 1, H4: 1, P: 1, BR: 1, STRONG: 1, B: 1, EM: 1, I: 1, U: 1, S: 1, SUP: 1, SUB: 1,
+      SMALL: 1, MARK: 1, A: 1, UL: 1, OL: 1, LI: 1, IMG: 1, TABLE: 1, THEAD: 1, TBODY: 1, TR: 1,
+      TH: 1, TD: 1, BLOCKQUOTE: 1, FIGURE: 1, FIGCAPTION: 1, HR: 1, SPAN: 1, DIV: 1,
+    };
+    var DROP = {
+      SCRIPT: 1, STYLE: 1, IFRAME: 1, OBJECT: 1, EMBED: 1, FORM: 1, INPUT: 1, BUTTON: 1, TEXTAREA: 1,
+      SELECT: 1, LINK: 1, META: 1, NOSCRIPT: 1, SVG: 1, MATH: 1, TEMPLATE: 1, VIDEO: 1, AUDIO: 1,
+    };
+    var RENAME = { H1: "H2", H5: "H4", H6: "H4" };
+    var PHOTO_REF = /^\s*(?:фото|photo|сурет)[\s:#-]*(\d+)\s*$/i;
+    var YT = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/;
+
+    function cleanStyle(v) {
+      return String(v || "")
+        .split(";")
+        .filter(function (d) {
+          var p = d.split(":");
+          return (
+            p.length === 2 &&
+            /^\s*(color|font-weight|font-style|text-decoration)\s*$/i.test(p[0]) &&
+            !/url|expression|javascript/i.test(p[1])
+          );
+        })
+        .join(";");
+    }
+
+    function cleanAttrs(el) {
+      var tag = el.tagName,
+        keep = {};
+      [].slice.call(el.attributes).forEach(function (a) {
+        var n = a.name.toLowerCase(),
+          v = a.value;
+        if (n === "class") {
+          v = v.split(/\s+/).filter(function (c) {
+            return /^es-/.test(c);
+          }).join(" ");
+          if (v) keep["class"] = v;
+        } else if (n === "style") {
+          v = cleanStyle(v);
+          if (v) keep.style = v;
+        } else if (tag === "A" && n === "href") {
+          if (/^(https?:|mailto:|tel:|\/|#)/i.test(v.trim())) keep.href = v.trim();
+        } else if (tag === "A" && n === "target") {
+          keep.target = v === "_blank" ? "_blank" : "_self";
+        } else if (tag === "IMG" && n === "src") {
+          var m = PHOTO_REF.exec(v);
+          if (m) keep["data-photo"] = m[1];
+          else if (/^(https?:)?\/\//i.test(v.trim()) || v.trim().charAt(0) === "/") keep.src = v.trim();
+        } else if (tag === "IMG" && n === "alt") {
+          keep.alt = v;
+        } else if ((tag === "TD" || tag === "TH") && (n === "colspan" || n === "rowspan")) {
+          if (/^\d{1,2}$/.test(v)) keep[n] = v;
+        } else if (tag === "LI" && n === "data-icon") {
+          keep[n] = v;
+        }
+      });
+      while (el.attributes.length) el.removeAttribute(el.attributes[0].name);
+      Object.keys(keep).forEach(function (k) {
+        el.setAttribute(k, keep[k]);
+      });
+      if (keep.target === "_blank") el.setAttribute("rel", "noopener");
+    }
+
+    function sanitize(node) {
+      [].slice.call(node.childNodes).forEach(function (ch) {
+        if (ch.nodeType === 8) return ch.remove();
+        if (ch.nodeType !== 1) return;
+        var tag = ch.tagName;
+        // код вставки YouTube превращаем в ссылку — дальше она станет плеером
+        if (tag === "IFRAME") {
+          var y = YT.exec(ch.getAttribute("src") || "");
+          if (y) {
+            var p = idoc.createElement("p");
+            p.textContent = "https://youtu.be/" + y[1];
+            node.replaceChild(p, ch);
+            return;
+          }
+        }
+        if (DROP[tag]) return ch.remove();
+        if (RENAME[tag]) {
+          var r = idoc.createElement(RENAME[tag]);
+          while (ch.firstChild) r.appendChild(ch.firstChild);
+          node.replaceChild(r, ch);
+          ch = r;
+          tag = r.tagName;
+        }
+        sanitize(ch);
+        if (!ALLOWED[tag]) {
+          while (ch.firstChild) node.insertBefore(ch.firstChild, ch);
+          ch.remove();
+          return;
+        }
+        cleanAttrs(ch);
+      });
+      return node;
+    }
+
+    /* ============================================================
+     4. Поле «Текст» → вкладка «Описание»
+     ============================================================ */
+    var BLOCK_TAGS = { H2: 1, H3: 1, H4: 1, P: 1, UL: 1, OL: 1, TABLE: 1, BLOCKQUOTE: 1, FIGURE: 1, HR: 1, DIV: 1, IMG: 1 };
+
+    // текст и <br> вне тегов-блоков собираем в абзацы
+    function paragraphs(root) {
+      var run = [];
+      function flush(before) {
+        var has = run.some(function (n) {
+          return n.nodeType === 1 || /\S/.test(n.nodeValue);
+        });
+        if (has) {
+          var p = idoc.createElement("p");
+          root.insertBefore(p, before || null);
+          run.forEach(function (n) {
+            p.appendChild(n);
+          });
+        } else
+          run.forEach(function (n) {
+            n.remove();
+          });
+        run = [];
+      }
+      [].slice.call(root.childNodes).forEach(function (n) {
+        if (n.nodeType === 1 && BLOCK_TAGS[n.tagName]) flush(n);
+        else if (n.nodeType === 1 && n.tagName === "BR") {
+          flush(n);
+          n.remove();
+        } else if (n.nodeType === 1 || n.nodeType === 3) run.push(n);
+      });
+      flush(null);
+    }
+
+    // таблица из строк ячеек (HTML); «^» объединяет ячейку с верхней
+    function buildTable(rows) {
+      rows = rows.filter(function (r) {
+        return r.length && r.some(function (c) {
+          return plain(c);
+        });
+      });
+      if (rows.length < 2) return "";
+      var head = rows[0],
+        cols = head.length;
+      var grid = rows.slice(1).map(function (r) {
+        var cells = r.slice();
+        while (cells.length < cols) cells.push("");
+        return cells.map(function (c) {
+          return { h: c, span: 1, skip: false };
+        });
+      });
+      grid.forEach(function (row, r) {
+        row.forEach(function (cell, c) {
+          if (plain(cell.h) !== "^") return;
+          for (var k = r - 1; k >= 0; k--) {
+            var up = grid[k][c];
+            if (up && !up.skip) {
+              up.span++;
+              cell.skip = true;
+              return;
+            }
+          }
+          cell.h = "";
+        });
+      });
+      return (
+        '<div class="es-table__scroll"><table class="es-table"><thead><tr>' +
+        head.map(function (c) {
+          return "<th>" + c + "</th>";
+        }).join("") +
+        "</tr></thead><tbody>" +
+        grid.map(function (row) {
+          return (
+            "<tr>" +
+            row.map(function (c) {
+              if (c.skip) return "";
+              return "<td" + (c.span > 1 ? ' rowspan="' + c.span + '"' : "") + ">" + c.h + "</td>";
+            }).join("") +
+            "</tr>"
+          );
+        }).join("") +
+        "</tbody></table></div>"
+      );
+    }
+
+    function featsHtml(list) {
+      if (!list.length) return "";
+      var n = list.length;
+      var cols = n <= 5 ? n : n === 6 ? 3 : 4;
+      return (
+        '<div class="es-feats" style="--cols:' + cols + '">' +
+        list.map(function (f) {
+          return (
+            '<div class="es-feat"><div class="es-feat__icon">' + icon(f.icon) + "</div>" +
+            '<div class="es-feat__title">' + f.title + "</div>" +
+            (f.text ? '<div class="es-feat__text">' + f.text + "</div>" : "") +
+            "</div>"
+          );
+        }).join("") +
+        "</div>"
+      );
+    }
+
+    // <li data-icon="корни"><b>Заголовок</b> пояснение</li>
+    function cardFromLi(li) {
+      var first = li.firstElementChild,
+        title = "";
+      if (first && /^(B|STRONG|H3|H4)$/.test(first.tagName)) {
+        var before = "";
+        for (var n = li.firstChild; n && n !== first; n = n.nextSibling) before += n.textContent;
+        if (!norm(before)) {
+          title = first.innerHTML.trim();
+          first.remove();
+        }
+      }
+      var text = li.innerHTML.replace(/^(\s|&nbsp;|<br\s*\/?>)*[—–:|.\-]?\s*/i, "").trim();
+      if (!title) {
+        title = text;
+        text = "";
+      }
+      return { icon: li.getAttribute("data-icon") || "", title: title, text: text };
+    }
+
+    // <li><b>Упаковка</b> флакон 1 л</li>  или  <li>Упаковка: флакон 1 л</li>
+    function specFromLi(li) {
+      var first = li.firstElementChild,
+        k = "",
+        v = "";
+      if (first && /^(B|STRONG)$/.test(first.tagName)) {
+        var before = "";
+        for (var n = li.firstChild; n && n !== first; n = n.nextSibling) before += n.textContent;
+        if (!norm(before)) {
+          k = norm(first.textContent).replace(/[:\s]+$/, "");
+          first.remove();
+          v = li.innerHTML.replace(/^(\s|&nbsp;)*[:—–-]?\s*/, "").trim();
+        }
+      }
+      if (!k) {
+        var t = li.innerHTML,
+          i = plain(t).indexOf(":");
+        if (i > 0) {
+          k = plain(t).slice(0, i).trim();
+          v = t.slice(t.indexOf(":") + 1).trim();
+        } else v = t.trim();
+      }
+      return { k: k, v: v };
+    }
+
+    function specsHtml(list) {
+      var rows = list
+        .map(function (s) {
+          if (!s.k) return '<div class="es-specs__row es-specs__row--solo"><dd>' + s.v + "</dd></div>";
+          return '<div class="es-specs__row"><dt>' + esc(cap(s.k)) + ":</dt><dd>" + s.v + "</dd></div>";
+        })
+        .join("");
+      return rows ? '<dl class="es-specs">' + rows + "</dl>" : "";
+    }
+
+    function describe(rawHtml, images, title) {
+      var res = { html: "", specsHtml: "", hasSpecsBlock: false, cards: [], specs: [], used: {}, lead: "" };
+      if (!rawHtml) return res;
+
+      // Tilda экранирует поле «Текст»: вместо тегов в разметке лежит &lt;h2&gt;…
+      // (как и в es-article.html). Тогда настоящий HTML — это текст элемента.
+      var probe = inert(rawHtml);
+      var src = /&lt;\s*[a-z\/!]/i.test(rawHtml) ? textWithBreaks(probe) : rawHtml;
+      // совсем без тегов — простой текст, каждая строка станет абзацем
+      if (!/<\s*\/?[a-z][^>]*>/i.test(src)) {
+        src = esc(src === rawHtml ? textWithBreaks(probe) : src).replace(/\r?\n/g, "<br>");
+      }
+
+      var root = sanitize(inert(src));
+
+      // <p class="es-lead"> — короткое описание, если его не видно из поля «Описание»
+      var leadEl = root.querySelector(".es-lead");
+      if (leadEl) {
+        res.lead = norm(leadEl.textContent);
+        leadEl.remove();
+      }
+
+      // всё внутри <div class="es-tab-specs"> уходит во вкладку «Характеристики»
+      var specsRoot = idoc.createElement("div");
+      [].slice.call(root.querySelectorAll("div.es-tab-specs")).forEach(function (box) {
+        if (!box.parentNode || (box.parentNode.closest && box.parentNode.closest("div.es-tab-specs"))) return;
+        res.hasSpecsBlock = true;
+        while (box.firstChild) specsRoot.appendChild(box.firstChild);
+        box.remove();
+      });
+
+      function photo(ref) {
+        var i = parseInt(ref, 10) - 1;
+        if (!images[i]) {
+          console.warn("EcoSave: фото " + ref + " — в галерее товара нет такого изображения");
+          return "";
+        }
+        res.used[i] = true;
+        return images[i];
+      }
+      function figure(img, replace) {
+        var f = idoc.createElement("figure");
+        f.className = "es-figure";
+        replace.parentNode.replaceChild(f, replace);
+        f.appendChild(img);
+      }
+
+      function build(r) {
+        // ссылка без допустимого адреса — просто текст
+        [].slice.call(r.querySelectorAll("a:not([href])")).forEach(function (a) {
+          while (a.firstChild) a.parentNode.insertBefore(a.firstChild, a);
+          a.remove();
+        });
+        // переносы строк между пунктами списка и строками таблицы не нужны
+        [].slice.call(r.querySelectorAll("br")).forEach(function (b) {
+          if (/^(UL|OL|TABLE|THEAD|TBODY|TR)$/.test(b.parentNode.tagName)) b.remove();
+        });
+        paragraphs(r);
+
+        // картинки: «фото N» → изображение из галереи; одиночные — во всю ширину
+        [].slice.call(r.querySelectorAll("img")).forEach(function (img) {
+          var ref = img.getAttribute("data-photo");
+          if (ref) {
+            img.removeAttribute("data-photo");
+            var s = photo(ref);
+            if (s) img.setAttribute("src", s);
+          }
+          if (!img.getAttribute("src")) return img.remove();
+          if (!img.getAttribute("alt")) img.setAttribute("alt", title);
+          img.setAttribute("loading", "lazy");
+          var host = img.parentNode;
+          if (host === r) figure(img, img);
+          else if (host.tagName === "P" && host.parentNode === r && !norm(host.textContent) && host.querySelectorAll("img").length === 1)
+            figure(img, host);
+        });
+        [].forEach.call(r.querySelectorAll("figure"), function (f) {
+          f.classList.add("es-figure");
+        });
+
+        // таблицы — с прокруткой на телефоне
+        [].slice.call(r.querySelectorAll("table")).forEach(function (t) {
+          t.classList.add("es-table");
+          var w = idoc.createElement("div");
+          w.className = "es-table__scroll";
+          t.parentNode.replaceChild(w, t);
+          w.appendChild(t);
+        });
+
+        // <ul class="es-cards"> — карточки преимуществ
+        [].slice.call(r.querySelectorAll("ul.es-cards, ol.es-cards")).forEach(function (ul) {
+          var list = [].filter.call(ul.children, function (li) {
+            return li.tagName === "LI";
+          }).map(cardFromLi);
+          res.cards = res.cards.concat(list);
+          var box = inert(featsHtml(list)).firstChild;
+          if (box) ul.parentNode.replaceChild(box, ul);
+          else ul.remove();
+        });
+
+        // <ul class="es-specs"> — список «название — значение»
+        [].slice.call(r.querySelectorAll("ul.es-specs, ol.es-specs")).forEach(function (ul) {
+          var list = [].filter.call(ul.children, function (li) {
+            return li.tagName === "LI";
+          }).map(specFromLi).filter(function (s) {
+            return plain(s.v);
+          });
+          res.specs = res.specs.concat(list);
+          var box = inert(specsHtml(list)).firstChild;
+          if (box) ul.parentNode.replaceChild(box, ul);
+          else ul.remove();
+        });
+
+        return r.innerHTML.trim();
+      }
+
+      res.html = build(root);
+      res.specsHtml = build(specsRoot);
+      return res;
+    }
+
+    /* ---------- ссылки на YouTube → превью с кнопкой (как в статье блога) ---------- */
+    function enhanceVideos(root) {
+      [].slice.call(root.querySelectorAll("p, div, a")).forEach(function (el) {
+        if (!el.parentNode || el.closest(".es-feats, .es-specs")) return;
+        var href = el.tagName === "A" ? el.getAttribute("href") || "" : "";
+        var text = (el.textContent || "").trim();
+        if (el.tagName !== "A" && el.querySelector("img, iframe")) return;
+        var m = YT.exec(href) || YT.exec(text);
+        if (!m) return;
+        if (el.tagName !== "A" && text.replace(YT, "").replace(/https?:\/\/\S*/g, "").trim()) return;
+
+        var id = m[1];
+        var btn = document.createElement("button");
+        btn.className = "es-video";
+        btn.type = "button";
+        btn.setAttribute("aria-label", ES_TEXT.playVideo);
+        btn.innerHTML =
+          '<img src="https://i.ytimg.com/vi/' + id + '/maxresdefault.jpg" alt="" loading="lazy" ' +
+          "onerror=\"this.onerror=function(){this.style.visibility=\'hidden\'};this.src='https://i.ytimg.com/vi/" + id + "/hqdefault.jpg'\">" +
+          '<span class="es-video__play"><svg width="30" height="34" viewBox="0 0 30 34" fill="currentColor" aria-hidden="true">' +
+          '<path d="M29 15.27a2 2 0 010 3.46L3 33.6A2 2 0 010 31.87V2.13A2 2 0 013 .4l26 14.87z"/></svg></span>';
+        btn.addEventListener(
+          "click",
+          function () {
+            btn.innerHTML =
+              '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1" title="' + esc(ES_TEXT.video) + '" ' +
+              'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+          },
+          { once: true },
+        );
+        var target =
+          el.tagName === "A" && el.parentNode.tagName === "P" && el.parentNode.textContent.trim() === text ? el.parentNode : el;
+        target.parentNode.replaceChild(btn, target);
+      });
+    }
+
+    /* ============================================================
+     5. Характеристики по ролям
+     ============================================================ */
+    function split(specs) {
+      var feats = [],
+        table = "",
+        rest = [];
+      specs.forEach(function (s) {
+        if (/^преимущество/i.test(s.k)) {
+          // старый способ: «Преимущество N» = «Заголовок | пояснение»
+          var p = s.v.split("|");
+          feats.push({ icon: "", title: esc((p[0] || "").trim()), text: esc((p[1] || "").trim()) });
+        } else if (/^таблица$/i.test(s.k)) {
+          // строки через «;», ячейки через «|»
+          table = buildTable(
+            s.v.split(";").map(function (row) {
+              return row.split("|").map(function (c) {
+                return esc(c.trim());
+              });
+            }),
+          );
+        } else if (s.k && s.v) {
+          rest.push(s);
+        }
+      });
+      return { feats: feats, table: table, specs: rest };
+    }
+
+    /* ============================================================
+     6. Рендер
+     ============================================================ */
+    function render(d) {
+      var content = describe(d.textHtml, d.images, d.title);
+      // короткое описание: <p class="es-lead"> в «Тексте» → поле «Описание»
+      // на системной странице → разметка Product; иначе ищем карточку каталога
+      var textPlain = plain(d.textHtml);
+      var lead = content.lead || leadOk(d.lead, textPlain) || leadOk(d.ldLead, textPlain);
+
+      // Характеристики пишутся в «Тексте» внутри <div class="es-tab-specs">.
+      // Поле Tilda «Характеристики» читается, только если такого блока нет —
+      // так старые значения в карточке не задвоятся.
+      var parts = content.hasSpecsBlock ? { feats: [], table: "", specs: [] } : split(d.specs);
+      var tildaSpecs = parts.specs.map(function (s) {
+        return { k: s.k, v: esc(s.v) };
+      });
+      var specList = content.hasSpecsBlock ? content.specs : tildaSpecs;
+      var cards = parts.feats.concat(content.cards);
+
+      // пункты под кратким описанием
+      var mode = ES_CONFIG.bullets,
+        max = ES_CONFIG.bulletsCount,
+        bullets = [];
+      if (mode === "auto" || mode === "feats") {
+        bullets = cards.slice(0, max).map(function (f) {
+          return esc(plain(f.title));
+        });
+      }
+      if ((mode === "auto" && !bullets.length) || mode === "specs") {
+        bullets = specList
+          .filter(function (s) {
+            return s.k && plain(s.v).length <= ES_CONFIG.longValue;
+          })
+          .slice(0, max)
+          .map(function (s) {
+            return esc(cap(s.k)) + ": " + esc(plain(s.v));
+          });
+      }
+      bullets = bullets.filter(Boolean);
+
+      // слайдер: без фото, которые вставлены в текст
+      var gallery = d.images.filter(function (_, i) {
+        return ES_CONFIG.textPhotosInSlider || !content.used[i];
+      });
+      if (!gallery.length) gallery = d.images.slice(0, 1);
+      var inText = Object.keys(content.used).map(function (k) {
+        return +k + 1;
+      });
+      console.info(
+        "EcoSave: изображений у товара — " + d.images.length + ", в слайдере — " + gallery.length +
+          (inText.length && !ES_CONFIG.textPhotosInSlider
+            ? " (фото " + inText.join(", ") + " вставлены в «Текст», поэтому в слайдер не попали)"
+            : ""),
+      );
+      if (!gallery.length) gallery = [""];
+
+      var descrHtml =
+        featsHtml(parts.feats) + (content.html ? '<div class="es-content" id="esContent">' + content.html + "</div>" : "");
+      var specsHtmlAll = content.hasSpecsBlock
+        ? content.specsHtml
+          ? '<div class="es-content" id="esContentSpecs">' + content.specsHtml + "</div>"
+          : ""
+        : specsHtml(tildaSpecs) + parts.table;
+
+      var hasDescr = !!descrHtml;
+      var hasSpecs = !!specsHtmlAll;
+
+      body.innerHTML =
+        '<div class="es-top">' +
+        '<div class="es-slider" id="esSlider" role="region" aria-roledescription="' + esc(ES_TEXT.carousel) + '" aria-label="' + esc(ES_TEXT.gallery) + '">' +
+        '<div class="es-slider__viewport" id="esViewport" tabindex="0"><div class="es-slider__track" id="esTrack">' +
+        gallery
+          .map(function (src, i) {
+            return (
+              '<div class="es-slider__slide" role="group" aria-roledescription="' + esc(ES_TEXT.slide) + '" aria-label="' + esc(ES_TEXT.slideOf.replace("{i}", i + 1).replace("{n}", gallery.length)) + '">' +
+              '<img src="' + esc(src) + '" alt="' + esc(d.title) + '"' + (i ? ' loading="lazy"' : "") + ' draggable="false"></div>'
+            );
+          })
+          .join("") +
+        "</div></div>" +
+        '<button type="button" class="es-slider__nav es-slider__nav--prev" id="esPrev" aria-label="' + esc(ES_TEXT.prev) + '" aria-controls="esTrack">' + NAV_PREV + "</button>" +
+        '<button type="button" class="es-slider__nav es-slider__nav--next" id="esNext" aria-label="' + esc(ES_TEXT.next) + '" aria-controls="esTrack">' + NAV_NEXT + "</button>" +
+        '<div class="es-slider__bar" aria-hidden="true"><span id="esBar"></span></div>' +
+        "</div>" +
+        "<div>" +
+        '<h1 class="es-title">' + esc(d.title) + "</h1>" +
+        '<p class="es-lead" id="esLead"' + (lead ? "" : " hidden") + ">" + esc(lead) + "</p>" +
+        (hasDescr ? '<div class="es-anchor-row"><button class="es-anchor" data-tab="descr">' + esc(ES_TEXT.tabDescr) + ' ›</button></div>' : "") +
+        (bullets.length
+          ? '<ul class="es-bullets">' + bullets.map(function (b) {
+              return "<li>" + b + "</li>";
+            }).join("") + "</ul>"
+          : "") +
+        (hasSpecs ? '<div class="es-anchor-row"><button class="es-anchor" data-tab="specs">' + esc(ES_TEXT.tabSpecs) + ' ›</button></div>' : "") +
+        '<a class="es-cta" href="' + esc(ES_CONFIG.formPopupUrl) + '">' + esc(ES_TEXT.cta) + ARROW + "</a>" +
+        "</div>" +
+        "</div>" +
+        (hasSpecs || hasDescr
+          ? '<div class="es-tabs" role="tablist">' +
+            (hasDescr ? '<button class="es-tab" id="esTabDescr" role="tab" aria-selected="true" aria-controls="esPanelDescr">' + esc(ES_TEXT.tabDescr) + '</button>' : "") +
+            (hasSpecs ? '<button class="es-tab" id="esTabSpecs" role="tab" aria-selected="false" aria-controls="esPanelSpecs">' + esc(ES_TEXT.tabSpecs) + '</button>' : "") +
+            "</div>" +
+            (hasDescr ? '<div class="es-panel" id="esPanelDescr" role="tabpanel">' + descrHtml + "</div>" : "") +
+            (hasSpecs ? '<div class="es-panel" id="esPanelSpecs" role="tabpanel" hidden>' + specsHtmlAll + "</div>" : "")
+          : "");
+
+      ["esContent", "esContentSpecs"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) enhanceVideos(el);
+      });
+      if (!lead)
+        findCardLead().then(function (l) {
+          var el = document.getElementById("esLead");
+          if (l && el) {
+            el.textContent = l;
+            el.hidden = false;
+          } else
+            console.warn(
+              "EcoSave: короткое описание не найдено — на системной странице товара его нет, " +
+                "а карточки товара в скрытом блоке каталога на этой странице нет. " +
+                'Добавьте скрытый блок «Каталог товаров» или впишите в «Текст» <p class="es-lead">…</p>.',
+            );
+        });
+      initSlider(gallery.length);
+      initTabs();
+      bindPopup(d.title);
+    }
+
+    /* ---------- связка с модальным окном Tilda ---------- */
+    function fillPopup(title) {
+      document.querySelectorAll(ES_CONFIG.popupTitleSelector).forEach(function (el) {
+        el.textContent = title;
+      });
+      document.querySelectorAll('input[name="' + ES_CONFIG.productFieldName + '"]').forEach(function (i) {
+        i.value = title;
+      });
+    }
+
+    function bindPopup(title) {
+      fillPopup(title);
+      document.querySelectorAll(".es-cta").forEach(function (a) {
+        a.addEventListener("click", function () {
+          fillPopup(title);
+        });
+      });
+      setTimeout(function () {
+        fillPopup(title);
+      }, 800);
+    }
+
+    function initSlider(n) {
+      var slider = document.getElementById("esSlider");
+      var vp = document.getElementById("esViewport");
+      var track = document.getElementById("esTrack");
+      var bar = document.getElementById("esBar");
+      var prev = document.getElementById("esPrev");
+      var next = document.getElementById("esNext");
+      var slides = [].slice.call(track.children);
+      if (n < 2) {
+        slider.classList.add("es-slider--single");
+        vp.removeAttribute("tabindex");
+        return;
+      }
+      var i = 0,
+        dx = 0,
+        x0 = null,
+        y0 = 0,
+        drag = false;
+      bar.style.width = 100 / n + "%";
+
+      function draw(animate) {
+        track.style.transition = animate === false ? "none" : "";
+        track.style.transform = "translateX(calc(" + -i * 100 + "% + " + dx + "px))";
+        bar.style.transform = "translateX(" + i * 100 + "%)";
+        prev.disabled = i === 0;
+        next.disabled = i === n - 1;
+        slides.forEach(function (s, k) {
+          s.setAttribute("aria-hidden", k === i ? "false" : "true");
+        });
+      }
+      function go(k) {
+        i = Math.max(0, Math.min(n - 1, k));
+        dx = 0;
+        draw();
+      }
+      prev.addEventListener("click", function () {
+        go(i - 1);
+      });
+      next.addEventListener("click", function () {
+        go(i + 1);
+      });
+      vp.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowLeft") go(i - 1);
+        else if (e.key === "ArrowRight") go(i + 1);
+        else return;
+        e.preventDefault();
+      });
+
+      // перелистывание пальцем и мышью
+      vp.addEventListener("pointerdown", function (e) {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        x0 = e.clientX;
+        y0 = e.clientY;
+        drag = false;
+      });
+      vp.addEventListener("pointermove", function (e) {
+        if (x0 === null) return;
+        var mx = e.clientX - x0,
+          my = e.clientY - y0;
+        if (!drag) {
+          if (Math.abs(mx) > 8 && Math.abs(mx) > Math.abs(my)) {
+            drag = true;
+            try {
+              vp.setPointerCapture(e.pointerId);
+            } catch (err) {}
+          } else if (Math.abs(my) > 8) {
+            x0 = null; // вертикальный жест — это прокрутка страницы
+            return;
+          } else return;
+        }
+        // у краёв тянется с сопротивлением
+        dx = (i === 0 && mx > 0) || (i === n - 1 && mx < 0) ? mx / 3 : mx;
+        draw(false);
+      });
+      function end() {
+        if (x0 === null) return;
+        if (drag) {
+          var limit = Math.min(80, vp.offsetWidth * 0.15);
+          if (dx < -limit) i++;
+          else if (dx > limit) i--;
+        }
+        x0 = null;
+        drag = false;
+        go(i);
+      }
+      vp.addEventListener("pointerup", end);
+      vp.addEventListener("pointercancel", end);
+      // на тач-экранах браузер сам захватывает палец на слайде; когда захват
+      // переходит к окну слайдера, слайд сообщает о потере захвата — это не конец жеста
+      vp.addEventListener("lostpointercapture", function (e) {
+        if (e.target === vp) end();
+      });
+
+      draw(false);
+    }
+
+    function initTabs() {
+      var tabs = [].slice.call(document.querySelectorAll(".es-tab"));
+      if (!tabs.length) return;
+      function activate(id) {
+        tabs.forEach(function (t) {
+          var on = t.id === id;
+          t.setAttribute("aria-selected", on ? "true" : "false");
+          var panel = document.getElementById(t.getAttribute("aria-controls"));
+          if (panel) panel.hidden = !on;
+        });
+      }
+      tabs.forEach(function (t) {
+        t.addEventListener("click", function () {
+          activate(t.id);
+        });
+      });
+      document.querySelectorAll(".es-anchor[data-tab]").forEach(function (a) {
+        a.addEventListener("click", function () {
+          var id = a.getAttribute("data-tab") === "specs" ? "esTabSpecs" : "esTabDescr";
+          if (!document.getElementById(id)) return;
+          activate(id);
+          document.querySelector(".es-tabs").scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+      activate(tabs[0].id);
+    }
+
+    /* ============================================================
+     7. Запуск
+     ============================================================ */
+    if (!uid && !path) {
+      fail(ES_TEXT.errNoProduct);
+      return;
+    }
+
+    resolvePath()
+      .then(function (p) {
+        if (!p) {
+          fail(ES_TEXT.errNotFound);
+          return;
+        }
+        return fetch(p, { credentials: "same-origin" })
+          .then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.text();
+          })
+          .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, "text/html");
+            var data = parseDoc(doc);
+            if (!data.images.length) {
+              var c = document.querySelector('.js-product[data-product-uid="' + uid + '"]');
+              var ci = c && c.getAttribute("data-product-img");
+              if (ci) data.images = [ci];
+            }
+            if (!data.title) {
+              diagnose(doc);
+              fail(ES_TEXT.errParse);
+              return;
+            }
+            render(data);
+          });
+      })
+      .catch(function (e) {
+        console.error("EcoSave:", e);
+        fail(ES_TEXT.errLoad);
+      });
+  })();
+</script>

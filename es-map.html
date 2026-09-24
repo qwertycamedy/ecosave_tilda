@@ -1,0 +1,190 @@
+<!-- ================================================================
+     EcoSave — КАРТА С МЕТКОЙ
+     Вставляется в HTML-элемент Zero-блока (у вас это «HTML 1»)
+     либо в отдельный блок T123.
+
+     Карта грузится не сразу, а когда посетитель до неё доскроллит:
+     iframe Яндекса тянет около мегабайта и заметно тормозит открытие
+     страницы, если подключать его сразу.
+     ================================================================ -->
+
+<div class="es-map" id="esMap">
+  <div class="es-map__stub" id="esMapStub">
+    <span class="es-map__pin" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linejoin="round"
+        />
+        <circle
+          cx="12"
+          cy="10"
+          r="2.6"
+          stroke="currentColor"
+          stroke-width="1.7"
+        />
+      </svg>
+    </span>
+    <span class="es-map__text" id="esMapText">Загружаем карту…</span>
+  </div>
+</div>
+
+<style>
+  .es-map {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: var(--es-map-min-h, 320px);
+    max-height: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #e7eae6;
+    font-family: Inter, Sans-Serif;
+  }
+  .es-map iframe {
+    width: 100% !important;
+    height: 100% !important;
+    border: 0;
+    display: block;
+  }
+  .es-map__stub {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #6e6e6e;
+    font-size: 15px;
+    text-align: center;
+    padding: 16px;
+  }
+  .es-map__pin {
+    color: #4d9033;
+  }
+  .es-map__link {
+    color: #4d9033;
+    text-decoration: underline;
+    font-size: 15px;
+  }
+
+  @media (max-width: 600px) {
+    .es-map {
+      min-height: var(--es-map-min-h-mobile, 240px);
+      border-radius: 12px;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var ES_CONFIG = {
+      // Ссылка из конструктора Яндекс.Карт: constructor.yandex.ru
+      // Подходит любой из двух вариантов — «Как фрейм» или «Как скрипт»:
+      // код сам достанет идентификатор карты и соберёт правильный адрес.
+      src: "https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3Af0ebcf64e71e8a8f565b3c7b5303fbf9caeb91d3d455a599909bb10814f1bb77&width=100%25&height=400&lang=ru_RU&scroll=true",
+
+      // Запасная ссылка «открыть в картах», если iframe не загрузится
+      fallbackUrl:
+        "https://yandex.kz/maps/?text=" +
+        encodeURIComponent(
+          "Казахстан, Акмолинская область, Степногорск, микрорайон 9, здание 3",
+        ),
+
+      title: "EcoSave на карте",
+    };
+
+    var box = document.getElementById("esMap");
+    var stub = document.getElementById("esMapStub");
+    var text = document.getElementById("esMapText");
+
+    /* ---------- приводим ссылку к виду, пригодному для iframe ---------- */
+    function frameUrl(raw) {
+      if (!raw) return "";
+      // при копировании из конструктора часто прилетает &amp; или &;
+      raw = raw.replace(/&amp;/g, "&").replace(/&;/g, "&").trim();
+
+      // идентификатор карты: um=constructor:<хеш>
+      var m = /[?&]um=([^&]+)/.exec(raw);
+      if (m) {
+        return (
+          "https://yandex.ru/map-widget/v1/?um=" + m[1] + "&source=constructor"
+        );
+      }
+      // уже готовый адрес фрейма
+      if (/map-widget/.test(raw)) return raw;
+      return "";
+    }
+
+    var src = frameUrl(ES_CONFIG.src);
+
+    /* ---------- высота ---------- */
+    // если у родителя задана своя высота (HTML-элемент Zero-блока),
+    // снимаем минимальную, иначе карта вылезет за его границы
+    (function fitHeight() {
+      var parent = box.parentNode;
+      if (parent && parent.clientHeight >= 80) box.style.minHeight = "0";
+    })();
+
+    if (!src) {
+      text.innerHTML =
+        "Карта не настроена: впишите ссылку из конструктора в ES_CONFIG.src. " +
+        '<a class="es-map__link" href="' +
+        ES_CONFIG.fallbackUrl +
+        '" target="_blank" rel="noopener noreferrer">Открыть в Яндекс.Картах</a>';
+      return;
+    }
+
+    var loaded = false;
+
+    function load() {
+      if (loaded) return;
+      loaded = true;
+
+      var frame = document.createElement("iframe");
+      frame.src = src;
+      frame.title = ES_CONFIG.title;
+      frame.loading = "lazy";
+      frame.setAttribute("allowfullscreen", "");
+      frame.setAttribute("referrerpolicy", "no-referrer-when-downgrade");
+
+      frame.addEventListener("load", function () {
+        if (stub && stub.parentNode) stub.parentNode.removeChild(stub);
+      });
+
+      box.appendChild(frame);
+
+      // если карта не поднялась за 8 секунд — оставляем ссылку
+      setTimeout(function () {
+        if (stub && stub.parentNode) {
+          text.innerHTML =
+            "Карта не загрузилась. " +
+            '<a class="es-map__link" href="' +
+            ES_CONFIG.fallbackUrl +
+            '" target="_blank" rel="noopener noreferrer">Открыть в Яндекс.Картах</a>';
+        }
+      }, 8000);
+    }
+
+    // грузим, когда блок приближается к экрану
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) {
+              load();
+              io.disconnect();
+            }
+          });
+        },
+        { rootMargin: "300px" },
+      );
+      io.observe(box);
+    } else {
+      load();
+    }
+  })();
+</script>
